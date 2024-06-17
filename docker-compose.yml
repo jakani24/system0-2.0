@@ -1,0 +1,41 @@
+version: '3.3'
+
+services:
+  cyberhex-db:
+    image: yobasystems/alpine-mariadb:latest
+    container_name: cyberhex-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    networks:
+      cyberhex-network:
+        ipv4_address: 192.168.178.2
+    volumes:
+      - cyberhex-db-storage:/var/lib/mysql
+
+  cyberhex-srv:
+    build:
+      context: .
+      dockerfile: srv_dockerfile
+    container_name: cyberhex-srv
+    networks:
+      cyberhex-network:
+        ipv4_address: 192.168.178.3
+    ports:
+      - "444:443"
+    depends_on:
+      - cyberhex-db
+    volumes:
+      - ./cyberhex-code:/var/www/html
+      - ./apache-conf:/etc/apache2/sites-available
+      - ./certs:/etc/apache2/certs
+networks:
+  cyberhex-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.178.0/24
+
+volumes:
+  cyberhex-db-storage:
+    external: true
