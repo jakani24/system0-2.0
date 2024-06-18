@@ -6,7 +6,6 @@ include "../config/config.php";
 
 ?>
 
-
 <script src="/assets/js/load_page.js"></script>
 <script>
 function load_user()
@@ -17,13 +16,10 @@ function load_user()
 }
 </script>
 <?php
-	
 	echo "<script type='text/javascript' >load_user()</script>";
-
-
 ?>
-<?php 
-	$color=$_SESSION["color"]; 
+<?php
+	$color=$_SESSION["color"];
 	include "../assets/components.php";
 	if(isset($_POST["printer"])){
 		$color=htmlspecialchars($_GET["color"]);
@@ -32,7 +28,6 @@ function load_user()
 		//echo($sql);
 		$stmt = mysqli_prepare($link, $sql);
 		mysqli_stmt_execute($stmt);
-	
 	}
 ?>
 <div id="content"></div>

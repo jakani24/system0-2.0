@@ -30,4 +30,64 @@ $sql = "CREATE TABLE IF NOT EXISTS users (
 	notification_telegram INT
 	)";
 $link->query($sql);
+//printer table
+$sql = "CREATE TABLE IF NOT EXISTS printer (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        printing INT,
+        free INT,
+        used_by_userid INT,
+        printer_url VARCHAR(255),
+        apikey VARCHAR(255),
+        cancel INT,
+        system_status INT,
+        mail_sent INT,
+        rotation INT,
+        color VARCHAR(255)
+        )";
+$link->query($sql);
+
+//queue table
+$sql = "CREATE TABLE IF NOT EXISTS queue (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        from_userid INT,
+        filepath VARCHAR(255),
+        print_on INT
+        )";
+$link->query($sql);
+
+//api table
+$sql = "CREATE TABLE IF NOT EXISTS api (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        apikey VARCHAR(255)
+        )";
+$link->query($sql);
+
+
+//print key table
+$sql = "CREATE TABLE IF NOT EXISTS print_key (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        print_key VARCHAR(255)
+        )";
+$link->query($sql);
+
+
+//reservations table
+$sql = "CREATE TABLE IF NOT EXISTS reservations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+	set_by_userid INT,
+	time_from VARCHAR(255),
+	time_to VARCHAR(255),
+        day VARCHAR(255)
+        )";
+$link->query($sql);
+
+//filament table
+$sql = "CREATE TABLE IF NOT EXISTS filament (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255),
+	internal_id INT
+        )";
+$link->query($sql);
+
+echo("db creation finished, you can now close this tab.");
 ?>

@@ -11,8 +11,7 @@
 	   else {
 			 $ip = $_SERVER['REMOTE_ADDR'];
 	   }	   
-	   //echo($ip);
-	   $fp=fopen("log.txt","a");
+	   $fp=fopen("/var/www/html/log/log.txt","a");
 	   fwrite($fp,date(DATE_RFC2822));
 	   fwrite($fp,"     ");
 	   fwrite($fp,$ip);
@@ -35,7 +34,7 @@
 	   }
 	   
 	   //echo($ip);
-	   $fp=fopen("sys0.log","a");
+	   $fp=fopen("/var/www/html/log/sys0.log","a");
 	   fwrite($fp,date(DATE_RFC2822));
 	   fwrite($fp,";");
 	   fwrite($fp,$ip);

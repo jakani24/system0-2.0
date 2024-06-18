@@ -258,7 +258,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="create_user"){
             // Attempt to execute the prepared statement
             if(mysqli_stmt_execute($stmt)){
                 // Redirect to login page
-		if(!is_dir("../user_files/$username"))
+		if(!is_dir("/var/www/html/user_files/$username"))
                 	mkdir("/var/www/html/user_files/$username");
 	    //create session token, which has account creation token inisde it.
 	    $_SESSION["creation_token"]= urlencode(bin2hex(random_bytes(24/2)));

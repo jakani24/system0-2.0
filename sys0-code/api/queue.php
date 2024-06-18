@@ -36,7 +36,8 @@
 			else
 				$sql="Select id,apikey,printer_url from printer where id=$print_on and free=1";
 			//echo $sql;
-			$stmt = mysqli_prepare($link, $sql)mysqli_stmt_execute($stmt);
+			$stmt = mysqli_prepare($link, $sql);
+			mysqli_stmt_execute($stmt);
 			mysqli_stmt_store_result($stmt);
 			mysqli_stmt_bind_result($stmt, $id,$papikey,$purl);
 			mysqli_stmt_fetch($stmt);
