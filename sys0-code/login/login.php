@@ -137,6 +137,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
 				    $_SESSION["telegram_id"]=$telegram_id;
 				    $_SESSION["notification_telegram"]=$notification_telegram;
 				    $_SESSION["notification_mail"]=$notification_mail;
+					$_SESSION["class_id"]=$class_id;
 				//get the class 
 					$sql="select name from class where id=$class_id";
 					$stmt = mysqli_prepare($link, $sql);
