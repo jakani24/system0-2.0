@@ -200,7 +200,7 @@ function delete_input(input,action,id,row){
 					while($cnt!=0)
 					{
 						$userid=0;
-						$sql="select id,name, from class where id>$last_id ORDER BY id";
+						$sql="select id,name from class where id>$last_id ORDER BY id";
 						$cancel=0;
 						$stmt = mysqli_prepare($link, $sql);					
 						mysqli_stmt_execute($stmt);
