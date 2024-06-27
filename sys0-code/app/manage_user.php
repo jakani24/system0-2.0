@@ -115,9 +115,9 @@ function load_user()
 		$stmt = mysqli_prepare($link, $sql);
 		mysqli_stmt_execute($stmt);		
 	}
-	if(isset($_POST['username']))
+	if(isset($_GET['username']) && isset($_GET["delete"]))
 	{
-		$username_td=$_POST['username'];
+		$username_td=$_GET['username'];
 		$username_td=htmlspecialchars($username_td);
 		$sql="DELETE FROM users WHERE username = '$username_td';";
 		//echo($sql);
@@ -125,15 +125,6 @@ function load_user()
 		mysqli_stmt_execute($stmt);
 		deleteDirectory("/var/www/html/user_files/$username_td/");
 		log_("Deleted $username_td","BAN:DELETION");
-	}
-	else if(isset($_POST["ban"]))
-	{
-		$username_td=htmlspecialchars($_POST["ban"]);
-		$reason=htmlspecialchars($_POST["reason"]);
-		$sql="UPDATE users SET banned = 1, banned_reason='$reason' WHERE username='$username_td'";
-		$stmt = mysqli_prepare($link, $sql);
-		mysqli_stmt_execute($stmt);
-		log_("Banned $username_td","BAN:BAN");
 	}
 	else if(isset($_POST["unban"]))
 	{
@@ -278,7 +269,7 @@ function load_user()
 									else
 										echo('<td><input class="form-check-input" type="checkbox" value="" name="delete_from_public_cloud" ></td>');
 									echo('<td><input type="submit" class="btn btn-dark mb-5" value="Aktualisieren"  id="button"></td>');
-									echo('<td><button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#accept">Benutzer löschen</button></td>');
+									echo('<td><a href="manage_user.php?username='.$tusername.'&delete" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#accept">Benutzer löschen</a></td>');
 									echo("</form></tr>");
 									$last_id=$tid;
 									$cnt--;
@@ -291,26 +282,7 @@ function load_user()
 			</div
 		</div>
 	</div>
-	<div class="modal fade" id="accept" tabindex="-1" aria-labelledby="accept" aria-hidden="true">
-	  <div class="modal-dialog">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <h5 class="modal-title" id="exampleModalLabel">Benutzer wirklich löschen?</h5>
-	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-	      </div>
-	      <div class="modal-body">
-	        <div class="d-flex flex-row bd-highlight m-3">
-		  <div class="p-2 bd-highlight">
-			 <button type="button" class="btn-success">Bestätigen</button> 
-		  </div>
-		  <div class="p-2 bd-highlight">
-			<button type="button" class="btn-danger" data-bs-dismiss="modal" aria-label="Close">Nein</button> 
-		  </div>
-		</div>
-	      </div>
-	    </div>
-	  </div>
-	</div>
+
 </div>	
 
 <div id="footer"></div>
