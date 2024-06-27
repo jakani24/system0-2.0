@@ -222,7 +222,7 @@ function load_user()
 									mysqli_stmt_bind_result($stmt, $tid,$tusername,$trole);
 									mysqli_stmt_fetch($stmt);
 									mysqli_stmt_close($stmt);
-									echo("<tr><form action='remove_user.php?update_id=$tid&rid=".$_SESSION["rid"]."' method='post'>");
+									echo("<tr><form action='manage_user.php?update_id=$tid&rid=".$_SESSION["rid"]."&username=$search' method='post'>");
 									echo("<td>$tusername</td>");
 									if($trole[0]==="1")
 										echo('<td><input class="form-check-input" type="checkbox" value="" name="print" checked></td>');
@@ -269,7 +269,7 @@ function load_user()
 									else
 										echo('<td><input class="form-check-input" type="checkbox" value="" name="delete_from_public_cloud" ></td>');
 									echo('<td><input type="submit" class="btn btn-dark mb-5" value="Aktualisieren"  id="button"></td>');
-									echo('<td><a href="manage_user.php?username='.$tusername.'&delete" class="btn btn-danger" >Benutzer löschen</a></td>');
+									echo('<td><a href="manage_user.php?username='.$tusername.'&delete&username='.$search.'" class="btn btn-danger" >Benutzer löschen</a></td>');
 									echo("</form></tr>");
 									$last_id=$tid;
 									$cnt--;
