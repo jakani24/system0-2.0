@@ -7,6 +7,7 @@ session_start();
 include "../config/config.php";
 include "../api/queue.php";
 $role=$_SESSION["role"];
+$username=$_SESSION["username"];
 // Check if the user is logged in, if not then redirect him to login page
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: /login/login.php");
@@ -67,6 +68,19 @@ function load_user()
         if(!isset($_SESSION["rid"]))
                 $_SESSION["rid"]=0;
         $_SESSION["rid"]++;
+
+	if(isset($_GET["set_class"])){
+		$class_id=htmlspecialchars($_POST["class"]);
+		$sql="update users set class_id=$class_id where username='$username'";
+		$stmt = mysqli_prepare($link, $sql);
+		mysqli_stmt_execute($stmt);
+		$sql="select name from class where id=$class_id";
+		$stmt = mysqli_prepare($link, $sql);
+		mysqli_stmt_execute($stmt);
+		$class_name="";
+		mysqli_stmt_bind_result($stmt, $class_name);
+		$_SESSION["class"]=$class_name;
+	}
 ?>
 
   <title>Alle Drucker</title>
@@ -389,6 +403,37 @@ function load_user()
         ?>
         <br><br>
         </div>
+	<!-- class selector -->
+	<div class="modal fade" id="select_class" tabindex="1" role="dialog" aria-labelledby="class" aria-hidden="false">
+	      <div class="modal-dialog" role="document">
+		<div class="modal-content">
+		  <div class="modal-header">
+		    <h5 class="modal-title" id="exampleModalLabel">Klasse angeben</h5>
+		    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+			<div class="modal-body">
+				<p>Hallo <?php echo(str_replace(".","",str_replace("@kantiwattwil.ch",""$_SESSION["username"]))); ?> bitte wähle deine Klasse aus der Liste unten aus.</p>
+				<form action="overview.php?set_class" method="post">
+					<select name="class">
+					<?php
+						//alle klassen auflisten
+						$sql="select * from class";
+						$stmt = mysqli_prepare($link, $sql);
+						$stmt->execute();
+						$result = $stmt->get_result();
+						while($row = $result->fetch_assoc()) {
+							echo("<option value='".$row["id"]."'>".$row["name"]."</option>");
+						}
+					?>
+					</select>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" name="submit" class="btn btn-dark">Bestätigen</button>
+			</div>
+			  </div>
+			</form>
+		</div>
+	</div>
         <div id="footer"></div>
 </body>
 
