@@ -138,13 +138,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
 				    $_SESSION["notification_telegram"]=$notification_telegram;
 				    $_SESSION["notification_mail"]=$notification_mail;
 					$_SESSION["class_id"]=$class_id;
-				//get the class 
-					$sql="select name from class where id=$class_id";
-					$stmt = mysqli_prepare($link, $sql);
-					mysqli_stmt_execute($stmt);
-					$class_name="";
-					mysqli_stmt_bind_result($stmt, $class_name);
-					$_SESSION["class"]=$class_name;
+				
 		                    // Redirect user to welcome page
 		                        log_("$username logged in","LOGIN:SUCCESS");
 		                        header("location:/app/overview.php");
