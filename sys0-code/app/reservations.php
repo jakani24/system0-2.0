@@ -101,14 +101,14 @@ if(isset($_GET["del"])){
 				<!-- List reservations -->
 				<h4>Reservationen (Alte Reservationen werden automatisch gelöscht)</h4>
 				<?php
-					$sql="select * from reservations, class WHERE for_class=class.id order by reservations.id desc;";
+					$sql="select reservations.id as res_id,time_to,time_from,name,day from reservations, class WHERE for_class=class.id order by reservations.id desc;";
 				        $stmt = $link->prepare($sql);
 				        $stmt->execute();
 				        $result = $stmt->get_result();
 				        echo("<table class='table'>");
 				        echo("<tr><th>Zeit von</th><th>Zeit bis</th><th>Datum</th><th>Klasse</th><th>Reservation löschen</th></tr>");
 				        while($row = $result->fetch_assoc()) {
-				        	echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td>".$row["name"]."</td><td><a href='reservations.php?del=".$row["reservations.id"]."'>Löschen</a></td><tr>");
+				        	echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td>".$row["name"]."</td><td><a href='reservations.php?del=".$row["res_id"]."'>Löschen</a></td><tr>");
 				        }
 					echo("</table>");
 				
