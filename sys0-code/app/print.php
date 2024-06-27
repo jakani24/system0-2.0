@@ -330,7 +330,7 @@ function is_time_between($startTime, $endTime, $checkTime) {
 					    if (is_time_between($row["time_from"], $row["time_to"], $time_now)) {
 						$reservation_conflict = true;
 						$for_class[]=$row["for_class"];
-						break;
+						//break;
 					    }
 					}
 					if(!isset($for_class))
