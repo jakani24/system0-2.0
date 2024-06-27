@@ -204,7 +204,12 @@ function load_user()
 							echo("<tr>");
 								//how many users do we have?
 								$cnt=0;
-								$sql="SELECT COUNT(*) FROM users";
+								if(isset($_GET["username"]))
+									$search=htmlspecialchars($_GET["username"]);
+								else
+									$search="user_not_found";
+								
+								$sql="SELECT COUNT(*) FROM users WHERE username LIKE '%$search%'";
 								$stmt = mysqli_prepare($link, $sql);
 								mysqli_stmt_execute($stmt);
 								// Store result
@@ -218,7 +223,7 @@ function load_user()
 									$tusername="";
 									$trole="";
 									$tid=0;
-									$sql="select id,username,role from users where id>$last_id ORDER BY id";
+									$sql="select id,username,role from users where id>$last_id AND username LIKE '%$search%' ORDER BY id";
 									$stmt = mysqli_prepare($link, $sql);
 									mysqli_stmt_execute($stmt);
 									// Store result
