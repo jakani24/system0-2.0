@@ -69,7 +69,7 @@ function load_user()
                 $_SESSION["rid"]=0;
         $_SESSION["rid"]++;
 
-	if(isset($_GET["set_class"])){
+	if(isset($_GET["set_class"]) && $_POST["class"]!==""){
 		$class_id=htmlspecialchars($_POST["class"]);
 		$sql="update users set class_id=$class_id where username='$username'";
 		$stmt = mysqli_prepare($link, $sql);
@@ -409,7 +409,6 @@ function load_user()
 		<div class="modal-content">
 		  <div class="modal-header">
 		    <h5 class="modal-title" id="exampleModalLabel">Klasse angeben</h5>
-		    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		  </div>
 			<div class="modal-body">
 				<p>Hallo <?php echo(str_replace(".","",str_replace("@kantiwattwil.ch","",$_SESSION["username"]))); ?> bitte wähle deine Klasse aus der Liste unten aus.</p>
@@ -437,7 +436,11 @@ function load_user()
 	<?php
 		if($_SESSION["class"]==""){
 			echo("<script>");
-			    echo("$('#select_class').modal('show');");
+			    echo("var modal = document.getElementById('select_class');");
+			    echo("modal.classList.add('show');");
+			    echo("modal.style.display = 'block';");
+			    echo("modal.removeAttribute('aria-hidden');");
+			    echo("document.body.classList.add('modal-open');");
 			echo("</script>");
 		}
 	?>
