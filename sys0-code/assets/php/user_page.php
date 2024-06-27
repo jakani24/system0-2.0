@@ -149,8 +149,8 @@
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">Benutzer verwalten</h5>
-											<p class="card-text">Entfernen/bearbeiten Sie ein Benutzerkonto aus dem System.</p>
-											<a href="/app/remove_user.php" class="stretched-link"></a>
+											<p class="card-text">Bearbeiten Sie ein Benutzerkonto aus dem System.</p>
+											<a href="/app/manage_user.php" class="stretched-link"></a>
 										</div>
 
 									</div>
