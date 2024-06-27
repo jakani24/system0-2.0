@@ -126,9 +126,9 @@ function load_user()
 		deleteDirectory("/var/www/html/user_files/$username_td/");
 		log_("Deleted $username_td","BAN:DELETION");
 	}
-	else if(isset($_POST["unban"]))
+	else if(isset($_GET["verify"]) && isset($_GET['username']))
 	{
-		$username_td=htmlspecialchars($_POST["unban"]);
+		$username_td=htmlspecialchars($_GET['username']);
 		$sql="UPDATE users SET banned = 0 WHERE username='$username_td'";
 		$stmt = mysqli_prepare($link, $sql);
 		mysqli_stmt_execute($stmt);
@@ -189,6 +189,7 @@ function load_user()
 								echo("<td>Alle Dateien von Öffentlicher Cloud löschen</td>");
 								echo("<td>Aktualisieren</td>");
 								echo("<td>Benutzer löschen</td>");
+								echo("<td>Benutzer manuell verifizieren</td>");
 							echo("</tr>");
 						echo("</thead>");
 						echo("<tbody>");
@@ -213,13 +214,14 @@ function load_user()
 								while($cnt!=0){
 									$tusername="";
 									$trole="";
+									$banned=0;
 									$tid=0;
-									$sql="select id,username,role from users where id>$last_id AND username LIKE '%$search%' ORDER BY id";
+									$sql="select id,username,role,banned from users where id>$last_id AND username LIKE '%$search%' ORDER BY id";
 									$stmt = mysqli_prepare($link, $sql);
 									mysqli_stmt_execute($stmt);
 									// Store result
 									mysqli_stmt_store_result($stmt);
-									mysqli_stmt_bind_result($stmt, $tid,$tusername,$trole);
+									mysqli_stmt_bind_result($stmt, $tid,$tusername,$trole,$banned);
 									mysqli_stmt_fetch($stmt);
 									mysqli_stmt_close($stmt);
 									echo("<tr><form action='manage_user.php?update_id=$tid&rid=".$_SESSION["rid"]."&username=$search' method='post'>");
@@ -269,7 +271,11 @@ function load_user()
 									else
 										echo('<td><input class="form-check-input" type="checkbox" value="" name="delete_from_public_cloud" ></td>');
 									echo('<td><input type="submit" class="btn btn-dark mb-5" value="Aktualisieren"  id="button"></td>');
-									echo('<td><a href="manage_user.php?username='.$tusername.'&delete&username='.$search.'" class="btn btn-danger" >Benutzer löschen</a></td>');
+									echo('<td><a href="manage_user.php?username='.$tusername.'&delete" class="btn btn-danger" >Benutzer löschen</a></td>');
+									if($banned==1)
+										echo('<td><a href="manage_user.php?username='.$tusername.'&verify" class="btn btn-danger" >Benutzer verifizieren</a></td>');
+									else
+										echo('<td>Benutzer bereits verifiziert</td>');
 									echo("</form></tr>");
 									$last_id=$tid;
 									$cnt--;
