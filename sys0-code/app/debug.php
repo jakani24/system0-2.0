@@ -81,6 +81,13 @@ function delete_input(input,action,id,row){
 						$stmt = mysqli_prepare($link, $sql);					
 						mysqli_stmt_execute($stmt);
 					}
+					if($_GET["action"]=="add_class"){
+						$name=$_POST["class_name"];
+						$id=$_POST["filament_id"];
+						$sql="INSERT INTO class (name) VALUES ('$name')";
+						$stmt = mysqli_prepare($link, $sql);					
+						mysqli_stmt_execute($stmt);
+					}
 					$cnt=0;
 					$url="";
 					$apikey="";
@@ -164,47 +171,56 @@ function delete_input(input,action,id,row){
 				}
 				echo("</tbody></table></div></div></div>");
 			?>
-				<br><br>
-				<h1>Filamentfarbe</h1>
-				<?php
-					//list printers => form => color
+			<br><br>
+			<h1>Klassen</h1>
+			<?php
+				
 					$cnt=0;
 					$url="";
 					$apikey="";
-					$sql="select count(*) from printer";
+					$sql="select count(*) from class";
 					$stmt = mysqli_prepare($link, $sql);					
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_store_result($stmt);
 					mysqli_stmt_bind_result($stmt, $cnt);
 					mysqli_stmt_fetch($stmt);	
 					//echo($cnt);
-					echo("<div class='container'><div class='row'><div class='col'><div class='overflow-auto'><table class='table'><thead><tr><th>Druckerid</th><th>Rotation</th></tr></thead><tbody>");
+					echo("<div class='container'><div class='row'><div class='col'><div class='overflow-auto'><table class='table' id='table2'><thead><tr><th>Klasse</th><th>Hinzufügen/Löschen</th></tr></thead><tbody>");
+					
+					//form to add a color
+					echo("<form action='debug.php?action=add_class' method='post'>");
+						echo("<td><input type='text' placeholder='Klasse' name='class_name' required></input></td>");
+						echo("<td><button type='submit' value='add' class='btn btn-primary'>Hinzufügen</button></td>");
+					echo("</form>");
+					
 					$last_id=0;	
 					$color="";
+					$id=0;
+					$row=1;
 					while($cnt!=0)
 					{
 						$userid=0;
-						$sql="select color,id from printer where id>$last_id ORDER BY id";
+						$sql="select id,name, from class where id>$last_id ORDER BY id";
 						$cancel=0;
 						$stmt = mysqli_prepare($link, $sql);					
 						mysqli_stmt_execute($stmt);
 						mysqli_stmt_store_result($stmt);
-						mysqli_stmt_bind_result($stmt, $color,$printer_id);
+						mysqli_stmt_bind_result($stmt,$id, $name);
 						mysqli_stmt_fetch($stmt);
 
 						
-						$last_id=$printer_id;
+						$last_id=$id;
 						
 						$used_by_user="";
-
-						echo("<tr><td>$printer_id</td><td><form method='POST' action='?id=$printer_id'><input type='text' id='color$printer_id' value='$color' name='color' placeholder='Filamentfarbe' oninput='update_input(\"color$printer_id\",\"update_color\",\"$printer_id\");'></input></td></form></tr>");
-						
+						$row++;
+						echo("<tr><td><input type='text' id='class$id' value='$name' name='class' placeholder='Klasse' oninput='update_input(\"class$id\",\"update_class\",\"$id\");'></input></td><td><button class='btn btn-danger' onclick='delete_input(\"class$id\",\"delete_class\",\"$id\",$row);'>Löschen</button></td></tr>");
 						$cnt--;
 					}
 					echo("</tbody></table></div></div></div>");
 					echo("</div>");
+
+			?>
 				
-				?>
 				<h1>Filamente</h1>
 				<?php
 					//list printers => form => color
