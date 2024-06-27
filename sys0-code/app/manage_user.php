@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+	<title>Manage user</title>
 <?php
 // Initialize the session
 session_start();
@@ -26,7 +27,7 @@ function load_user()
 }
 </script>
 <?php $color=$_SESSION["color"]; ?>
-<?php echo(" <body style='background-color:$color'> ");?>
+<?php echo("<body style='background-color:$color'> ");?>
 <div id="content"></div>
 <?php
 	function get_perm_string(){
@@ -171,12 +172,13 @@ function load_user()
 	<div class="container" style="min-height:95vh">
 		<div class="row">
 			<div class="col-mt-12">
-				<h4>Nach Benutzer suchen, um zu verwalten</h4>
-				<form action="manage_user.php" method="GET">
-					<input type="text" class="form-control" name="username">
-					<button type="submit" class="btn btn-primary">Search</button>
-				</form>
-				
+				<div style="display:flex">
+					<h4>Nach Benutzer suchen, um zu verwalten</h4>
+					<form action="manage_user.php" method="GET">
+						<input type="text" class="form-control" name="username" style="width:70%">
+						<button type="submit" class="btn btn-primary" style="width:25%">Search</button>
+					</form>
+				</div>
 				<!-- list users and their permissions -->
 				<?php
 					echo("<table class='table'>");
