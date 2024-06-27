@@ -171,6 +171,12 @@ function load_user()
 	<div class="container" style="min-height:95vh">
 		<div class="row">
 			<div class="col-mt-12">
+				<h4>Nach Benutzer suchen, um zu verwalten</h4>
+				<form action="manage_user.php" method="GET">
+					<input type="text" class="form-control" name="username">
+					<button type="submit" class="btn btn-primary">Search</button>
+				</form>
+				
 				<!-- list users and their permissions -->
 				<?php
 					echo("<table class='table'>");
