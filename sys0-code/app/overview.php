@@ -69,7 +69,7 @@ function load_user()
                 $_SESSION["rid"]=0;
         $_SESSION["rid"]++;
 
-	if(isset($_GET["set_class"]) && $_POST["class"]!==""){
+	if(isset($_GET["set_class"]) && isset($_POST["class"])){
 		$class_id=htmlspecialchars($_POST["class"]);
 		$sql="update users set class_id=$class_id where username='$username'";
 		$stmt = mysqli_prepare($link, $sql);
