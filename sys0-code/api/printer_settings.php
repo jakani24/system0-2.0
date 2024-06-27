@@ -42,4 +42,22 @@ if($_GET["action"]=="delete_filament")
 	$stmt = mysqli_prepare($link, $sql);					
 	mysqli_stmt_execute($stmt);
 }
+
+	
+if($_GET["action"]=="update_class")
+{
+	$id=htmlspecialchars($_GET['id']);
+	$color=htmlspecialchars($_GET["value"]);
+	$sql="update class set name='$color' where id=$id";
+	$stmt = mysqli_prepare($link, $sql);					
+	mysqli_stmt_execute($stmt);
+}
+if($_GET["action"]=="delete_class")
+{
+	$id=htmlspecialchars($_GET['id']);
+	$color=htmlspecialchars($_GET["value"]);
+	$sql="delete from class where id=$id";
+	$stmt = mysqli_prepare($link, $sql);					
+	mysqli_stmt_execute($stmt);
+}
 ?>
