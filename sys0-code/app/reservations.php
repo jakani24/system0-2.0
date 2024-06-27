@@ -108,7 +108,7 @@ if(isset($_GET["del"])){
 				        echo("<table class='table'>");
 				        echo("<tr><th>Zeit von</th><th>Zeit bis</th><th>Datum</th><th>Klasse</th><th>Reservation löschen</th></tr>");
 				        while($row = $result->fetch_assoc()) {
-				        	echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td>".$row["name"]."</td><td><a href='reservations.php?del=".$row["id"]."'>Löschen</a></td><tr>");
+				        	echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td>".$row["name"]."</td><td><a href='reservations.php?del=".$row["reservations.id"]."'>Löschen</a></td><tr>");
 				        }
 					echo("</table>");
 				
