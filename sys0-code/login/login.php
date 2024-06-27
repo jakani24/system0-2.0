@@ -33,6 +33,7 @@ $banned_reason="";
 $telegram_id="";
 $notification_telegram=0;
 $notification_mail=0;
+$class_id=0;
 //resend account verify mail
 if(isset($_GET["resend_acc_verify"])){
 			//we need to resend the accont verification lin
@@ -77,7 +78,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
     // Validate credentials
     if(empty($username_err) && empty($password_err)){
         // Prepare a select statement
-        $sql = "SELECT id, username, password, role, color,banned,banned_reason ,telegram_id,notification_telegram,notification_mail FROM users WHERE username = ?";
+        $sql = "SELECT id, username, password, role, color,banned,banned_reason ,telegram_id,notification_telegram,notification_mail, class_id FROM users WHERE username = ?";
         
         if($stmt = mysqli_prepare($link, $sql)){
             // Bind variables to the prepared statement as parameters
@@ -94,7 +95,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
                 // Check if username exists, if yes then verify password
                 if(mysqli_stmt_num_rows($stmt) == 1){                    
                     // Bind result variables
-                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $role,$color,$banned,$banned_reason,$telegram_id,$notification_telegram,$notification_mail);
+                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $role,$color,$banned,$banned_reason,$telegram_id,$notification_telegram,$notification_mail,$class_id);
                     if(mysqli_stmt_fetch($stmt)){
                         if(password_verify($password, $hashed_password)){
 		                if($banned!=1)
@@ -136,6 +137,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
 				    $_SESSION["telegram_id"]=$telegram_id;
 				    $_SESSION["notification_telegram"]=$notification_telegram;
 				    $_SESSION["notification_mail"]=$notification_mail;
+				//get the class 
+					$sql="select name from class where id=$class_id";
+					$stmt = mysqli_prepare($link, $sql);
+					mysqli_stmt_execute($stmt);
+					$class_name="";
+					mysqli_stmt_bind_result($stmt, $class_name);
+					$_SESSION["class"]=$class_name;
 		                    // Redirect user to welcome page
 		                        log_("$username logged in","LOGIN:SUCCESS");
 		                        header("location:/app/overview.php");
