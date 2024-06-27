@@ -273,7 +273,7 @@ function load_user()
 									echo('<td><input type="submit" class="btn btn-dark mb-5" value="Aktualisieren"  id="button"></td>');
 									echo('<td><a href="manage_user.php?username='.$tusername.'&delete" class="btn btn-danger" >Benutzer löschen</a></td>');
 									if($banned==1)
-										echo('<td><a href="manage_user.php?username='.$tusername.'&verify" class="btn btn-danger" >Benutzer verifizieren</a></td>');
+										echo('<td><a href="manage_user.php?username='.$tusername.'&verify" class="btn btn-success" >Benutzer verifizieren</a></td>');
 									else
 										echo('<td>Benutzer bereits verifiziert</td>');
 									echo("</form></tr>");
