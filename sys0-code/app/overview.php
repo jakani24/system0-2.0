@@ -434,6 +434,13 @@ function load_user()
 			</form>
 		</div>
 	</div>
+	<?php
+		if($_SESSION["class"]==""){
+			echo("<script>");
+			    echo("$('#select_class').modal('show');");
+			echo("</script>");
+		}
+	?>
         <div id="footer"></div>
 </body>
 
