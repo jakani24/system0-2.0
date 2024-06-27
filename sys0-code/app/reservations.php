@@ -53,9 +53,10 @@ if(isset($_POST["res"])){
 	$time_from=htmlspecialchars($_POST["time_from"]);
 	$time_to=htmlspecialchars($_POST["time_to"]);
 	$day=htmlspecialchars($_POST["date"]);
-	$sql="INSERT INTO reservations (time_from,time_to,day,set_by_userid) VALUES (?, ?, ?, ?);";
+	$class=htmlspecialchars($_POST["class"]);
+	$sql="INSERT INTO reservations (time_from,time_to,day,set_by_userid,for_class) VALUES (?, ?, ?, ?, ?);";
 	$stmt = $link->prepare($sql);
-	$stmt->bind_param("sssi",$time_from, $time_to, $day,$userid);
+	$stmt->bind_param("sssii",$time_from, $time_to, $day,$userid,$class);
         $stmt->execute();
 }
 if(isset($_GET["del"])){
@@ -82,20 +83,32 @@ if(isset($_GET["del"])){
 					<input type="text" placeholder="von (z.B. 14:00)" name="time_from">
 					<input type="text" placeholder="Bis (z.B. 15:00)" name="time_to">
 					<input type="date" name="date">
+					<select name="class">
+					<?php
+						//alle klassen auflisten
+						$sql="select * from class";
+						$stmt = mysqli_prepare($link, $sql);
+						$stmt->execute();
+						$result = $stmt->get_result();
+						while($row = $result->fetch_assoc()) {
+							echo("<option value='".$row["id"]."'>".$row["name"]."</option>");
+						}
+					?>
+					</select>
 					<button type="submit" value="res" name ="res" class="btn btn-primary">Reservieren</button>
 				</form>
 				<br><br>
 				<!-- List reservations -->
 				<h4>Reservationen (Alte Reservationen werden automatisch gelöscht)</h4>
 				<?php
-					$sql="select * from reservations order by id desc;";
+					$sql="select * from reservations, class WHERE for_class=class.id order by id desc;";
 				        $stmt = $link->prepare($sql);
 				        $stmt->execute();
 				        $result = $stmt->get_result();
 				        echo("<table class='table'>");
-				        echo("<tr><th>Zeit von</th><th>Zeit bis</th><th>Datum</th><th>Reservation löschen</th></tr>");
+				        echo("<tr><th>Zeit von</th><th>Zeit bis</th><th>Datum</th><th>Klasse</th><th>Reservation löschen</th></tr>");
 				        while($row = $result->fetch_assoc()) {
-				        	echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td><a href='reservations.php?del=".$row["id"]."'>Löschen</a></td><tr>");
+				        	echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td>".$row["name"]."</td><td><a href='reservations.php?del=".$row["id"]."'>Löschen</a></td><tr>");
 				        }
 					echo("</table>");
 				
