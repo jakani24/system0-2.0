@@ -84,7 +84,8 @@ $sql = "CREATE TABLE IF NOT EXISTS reservations (
 	set_by_userid INT,
 	time_from VARCHAR(255),
 	time_to VARCHAR(255),
-        day VARCHAR(255)
+        day VARCHAR(255),
+	for_class INT
         )";
 $link->query($sql);
 
