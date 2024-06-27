@@ -4,7 +4,7 @@
 // Initialize the session
 session_start();
 include "../config/config.php";
-include "./api/queue.php";
+include "../api/queue.php";
 // Check if the user is logged in, if not then redirect him to login page
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION["role"][9]!=="1"){
     header("location: /login/login.php");
