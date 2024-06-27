@@ -172,13 +172,13 @@ function load_user()
 	<div class="container" style="min-height:95vh">
 		<div class="row">
 			<div class="col-mt-12">
-				 <div class="d-flex flex-column align-items-center bg-white border rounded p-4 shadow" style="width: 80%; max-width: 600px;">
-        <h4>Nach Benutzer suchen, um zu verwalten</h4>
-        <form action="manage_user.php" method="GET" class="d-flex w-100 mt-3">
-            <input type="text" class="form-control flex-grow-1 mr-2" name="username" placeholder="Benutzername eingeben" style="padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-            <button type="submit" class="btn btn-primary" style="padding: 0.375rem 0.75rem; border: none; border-radius: 0.25rem; cursor: pointer;">Search</button>
-        </form>
-    </div>
+				 <div class="d-flex flex-column align-items-center " >
+  				      <h4>Nach Benutzer suchen, um zu verwalten</h4>
+  				      <form action="manage_user.php" method="GET" >
+        				    <input type="text" class="form-control flex-grow-1 mr-2" name="username" placeholder="Benutzername eingeben" >
+            					<button type="submit" class="btn btn-primary">Suchen</button>
+        				</form>
+    			</div>
 				<!-- list users and their permissions -->
 				<?php
 					echo("<table class='table'>");
