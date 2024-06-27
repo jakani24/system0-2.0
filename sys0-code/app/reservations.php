@@ -101,7 +101,7 @@ if(isset($_GET["del"])){
 				<!-- List reservations -->
 				<h4>Reservationen (Alte Reservationen werden automatisch gelöscht)</h4>
 				<?php
-					$sql="select * from reservations, class WHERE for_class=class.id order by id desc;";
+					$sql="select * from reservations, class WHERE for_class=class.id order by reservations.id desc;";
 				        $stmt = $link->prepare($sql);
 				        $stmt->execute();
 				        $result = $stmt->get_result();
