@@ -435,7 +435,7 @@ function load_user()
 		</div>
 	</div>
 	<?php
-		if($_SESSION["class"]==""){
+		if($_SESSION["class_id"]==""){
 			echo("<script>");
 			    echo("var modal = document.getElementById('select_class');");
 			    echo("modal.classList.add('show');");
