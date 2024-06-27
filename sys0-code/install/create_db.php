@@ -27,7 +27,8 @@ $sql = "CREATE TABLE IF NOT EXISTS users (
 	telegram_id VARCHAR(50),
 	notification_way INT,
 	notification_mail INT,
-	notification_telegram INT
+	notification_telegram INT,
+ 	class_id INT
 	)";
 $link->query($sql);
 //printer table
@@ -43,6 +44,12 @@ $sql = "CREATE TABLE IF NOT EXISTS printer (
         mail_sent INT,
         rotation INT,
         color VARCHAR(255)
+        )";
+$link->query($sql);
+
+$sql = "CREATE TABLE IF NOT EXISTS class (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(50)
         )";
 $link->query($sql);
 
