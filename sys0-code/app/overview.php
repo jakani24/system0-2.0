@@ -80,6 +80,7 @@ function load_user()
 		$class_name="";
 		mysqli_stmt_bind_result($stmt, $class_name);
 		$_SESSION["class"]=$class_name;
+		$_SESSION["class_id"]=$class_id;
 	}
 ?>
 
