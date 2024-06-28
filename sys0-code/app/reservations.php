@@ -94,6 +94,7 @@ if(isset($_GET["del"])){
 							echo("<option value='".$row["id"]."'>".$row["name"]."</option>");
 						}
 					?>
+					<option value='0'>Lehrer</option>
 					</select>
 					<button type="submit" value="res" name ="res" class="btn btn-primary">Reservieren</button>
 				</form>
