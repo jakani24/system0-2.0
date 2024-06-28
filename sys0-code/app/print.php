@@ -335,7 +335,7 @@ function is_time_between($startTime, $endTime, $checkTime) {
 					}
 					if(!isset($for_class))
 						$for_class[]=0;
-					if ($reservation_conflict && !in_array($class,$for_class)) {
+					if ($reservation_conflict && !in_array($class,$for_class) && $class!=0) {
 						var_dump($for_class);
 					    echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!</div></center>";
 						$block=true;
