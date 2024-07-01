@@ -425,7 +425,7 @@ function load_user()
 							echo("<option value='".$row["id"]."'>".$row["name"]."</option>");
 						}
 					?>
-					<option value='0'>Lehrer</option>
+					<option value='0'>Lehrperson</option>
 					</select>
 			</div>
 			<div class="modal-footer">
