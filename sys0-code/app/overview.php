@@ -74,11 +74,13 @@ function load_user()
 		$sql="update users set class_id=$class_id where username='$username'";
 		$stmt = mysqli_prepare($link, $sql);
 		mysqli_stmt_execute($stmt);
+		$stmt->close();
 		$sql="select name from class where id=$class_id";
 		$stmt = mysqli_prepare($link, $sql);
 		mysqli_stmt_execute($stmt);
 		$class_name="";
 		mysqli_stmt_bind_result($stmt, $class_name);
+		$stmt->close();
 		$_SESSION["class"]=$class_name;
 		$_SESSION["class_id"]=$class_id;
 	}
