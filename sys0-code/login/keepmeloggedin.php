@@ -21,13 +21,14 @@ function logmein($link)
 			$telegram_id="";
 			$notification_mail=0;
 			$notification_telegram=0;
-			$sql = "SELECT keepmeloggedin, role, id, color,banned,telegram_id,notification_telegram,notification_mail FROM users WHERE username = ?";
+			$class_id=0;
+			$sql = "SELECT keepmeloggedin, role, id, color,banned,telegram_id,notification_telegram,notification_mail, class_id FROM users WHERE username = ?";
 			$username=htmlspecialchars($username);
 			$stmt = mysqli_prepare($link, $sql);
 			mysqli_stmt_bind_param($stmt, "s", $username);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_store_result($stmt);
-			mysqli_stmt_bind_result($stmt, $usertoken,$role,$id,$color,$banned,$telegram_id,$notification_telegram,$notification_mail);
+			mysqli_stmt_bind_result($stmt, $usertoken,$role,$id,$color,$banned,$telegram_id,$notification_telegram,$notification_mail,$class_id);
 			mysqli_stmt_fetch($stmt);
 			mysqli_stmt_close($stmt);
 			if ($usertoken!==$token) {
@@ -48,6 +49,7 @@ function logmein($link)
 					$_SESSION["telegram_id"]=$telegram_id;
 					$_SESSION["notification_telegram"]=$notification_telegram;
 					$_SESSION["notification_mail"]=$notification_mail;
+					$_SESSION["class_id"]=$class_id;
 					log_("Logged $username in via autologin","LOGIN:AUTOLOGIN:SUCCESS"); 
 					return "success";
 				}
