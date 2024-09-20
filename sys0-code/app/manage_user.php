@@ -160,19 +160,20 @@ function load_user()
 	?>
 
 
-	<div class="container" style="min-height:95vh">
+	<div class="container" style="min-height:95vh; min-width:100%">
 		<div class="row">
-			<div class="col-mt-12">
-				 <div class="d-flex flex-column align-items-center " >
+			<div class="col-mt-12" style="overflow-x:auto">
+				 <div class="d-flex flex-column align-items-center">
   				      <h4>Nach Benutzer suchen, um zu verwalten</h4>
   				      <form action="manage_user.php" method="GET" >
         				    <input type="text" class="form-control flex-grow-1 mr-2" name="username" placeholder="Benutzername eingeben" >
             					<button type="submit" class="btn btn-primary">Suchen</button>
         				</form>
-    			</div>
+				</div>
+
 				<!-- list users and their permissions -->
 				<?php
-					echo("<table class='table'>");
+					echo("<table class='table' style='overflow-x: auto'>");
 						echo("<thead>");
 							echo("<tr>");
 								echo("<td>Nutzer</td>");
@@ -200,7 +201,7 @@ function load_user()
 									$search=htmlspecialchars($_GET["username"]);
 								else
 									$search="user_not_found";
-								
+
 								$sql="SELECT COUNT(*) FROM users WHERE username LIKE '%$search%'";
 								$stmt = mysqli_prepare($link, $sql);
 								mysqli_stmt_execute($stmt);
@@ -280,16 +281,14 @@ function load_user()
 									$last_id=$tid;
 									$cnt--;
 								}
-							echo("</tr>");
+					//		echo("</tr>");
 						echo("</tbody>");
 					echo("</table>");
 					mysqli_close($link);
 				?>
-			</div
+			</div>
 		</div>
 	</div>
-
-</div>	
 
 <div id="footer"></div>
 </body>
