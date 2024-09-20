@@ -379,7 +379,6 @@ function is_time_between($startTime, $endTime, $checkTime) {
 							mysqli_stmt_store_result($stmt);
 							mysqli_stmt_bind_result($stmt, $num_of_printers);
 							mysqli_stmt_fetch($stmt);
-							//echo("test1:".$num_of_printers);
 							$last_id=0;
 							$printers_av=0;
 							if(isset($_GET["preselect"])){
@@ -391,7 +390,7 @@ function is_time_between($startTime, $endTime, $checkTime) {
 								while($num_of_printers!=0)
 								{
 									$id=0;
-									$sql="Select id,color from printer where id>$last_id and free=1 order by id";
+									$sql="Select id,color from printer where id>$last_id and free=1 and system_status=0 order by id";
 									//echo $sql;
 									$color="";
 									$stmt = mysqli_prepare($link, $sql);
