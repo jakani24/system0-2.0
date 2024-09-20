@@ -359,8 +359,6 @@ function load_user()
                                                         echo("<table class='table table-borderless'>");
                                                         echo("<thead>");
                                                         echo("<tr><td>Status</td><td style='color:red'>Problem / nicht Betriebsbereit</td></tr>");
-                                                        if(!empty($filament_color) && $filament_color!=NULL)
-                                                                echo("<tr><td>Filamentfarbe</td><td >$filament_color</td></tr>");
                                                         echo("</thead>");
                                                         echo("</table>");
                                                         echo("</div>");

@@ -454,7 +454,7 @@ function is_time_between($startTime, $endTime, $checkTime) {
 								while($num_of_printers!=0)
 								{
 									$id=0;
-									$sql="Select id,color from printer where id>$last_id order by id";
+									$sql="Select id,color from printer where id>$last_id and system_status=0 order by id";
 									//echo $sql;
 									$color="";
 									$stmt = mysqli_prepare($link, $sql);

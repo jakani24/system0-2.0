@@ -88,32 +88,37 @@ function delete_input(input,action,id,row){
 						$stmt = mysqli_prepare($link, $sql);					
 						mysqli_stmt_execute($stmt);
 					}
+					if($_GET["update_status"]){
+						$status=$_GET["status"];
+						$printer=$_GET["update_status"];
+						$sql="UPDATE printer SET system_status=$status WHERE id = $printer";
+						$stmt = mysqli_prepare($link, $sql);
+                                                mysqli_stmt_execute($stmt);
+					}
 					$cnt=0;
 					$url="";
 					$apikey="";
-					$sql="select count(*) from printer where free=0";
+					$sql="select count(*) from printer";
 					$stmt = mysqli_prepare($link, $sql);					
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_store_result($stmt);
 					mysqli_stmt_bind_result($stmt, $cnt);
 					mysqli_stmt_fetch($stmt);	
 					//echo($cnt);
-					echo("<div class='container'><div class='row'><div class='col'><div class='overflow-auto'><table class='table'><thead><tr><th>Druckerid</th><th>Freigeben</th></tr></thead><tbody>");
+					echo("<div class='container'><div class='row'><div class='col'><div class='overflow-auto'><table class='table'><thead><tr><th>Druckerid</th><th>Freigeben</th><th>Druckerstatus ändern</th></tr></thead><tbody>");
 					$last_id=0;					
+					$system_status=0;
 					while($cnt!=0)
 					{
 						$userid=0;
-						$sql="select id,printer_url,apikey,cancel,used_by_userid from printer where free=0 and id>$last_id ORDER BY id";
+						$sql="select id,printer_url,apikey,cancel,used_by_userid, system_status from printer where id>$last_id ORDER BY id";
 						$cancel=0;
 						$stmt = mysqli_prepare($link, $sql);					
 						mysqli_stmt_execute($stmt);
 						mysqli_stmt_store_result($stmt);
-						mysqli_stmt_bind_result($stmt, $printer_id,$url,$apikey,$cancel,$userid);
+						mysqli_stmt_bind_result($stmt, $printer_id,$url,$apikey,$cancel,$userid,$system_status);
 						mysqli_stmt_fetch($stmt);
-	
-						
 						$last_id=$printer_id;
-						
 						$used_by_user="";
 						$sql="select username from users where id=$userid";
 						$stmt = mysqli_prepare($link, $sql);					
@@ -122,9 +127,10 @@ function delete_input(input,action,id,row){
 						mysqli_stmt_bind_result($stmt, $used_by_user);
 						mysqli_stmt_fetch($stmt);
 
-
-						echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form></tr>");
-						
+						if($system_status==0)
+							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form><a href='debug.php?update_status=$printer_id&status=1' class='btn btn-danger'>Status auf kaputt setzen</a></tr>");
+						else
+							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form><a href='debug.php?update_status=$printer_id&status=0' class='btn btn-success'>Status auf bereit setzen</a></tr>");
 						$cnt--;
 					}
 					echo("</tbody></table></div></div></div></div>");
