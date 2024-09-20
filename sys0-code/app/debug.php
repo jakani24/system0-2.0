@@ -128,9 +128,9 @@ function delete_input(input,action,id,row){
 						mysqli_stmt_fetch($stmt);
 
 						if($system_status==0)
-							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form><a href='debug.php?update_status=$printer_id&status=1' class='btn btn-danger'>Status auf kaputt setzen</a></tr>");
+							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form></td><td><a href='debug.php?update_status=$printer_id&status=1' class='btn btn-danger'>Status auf kaputt setzen</a></td></tr>");
 						else
-							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form><a href='debug.php?update_status=$printer_id&status=0' class='btn btn-success'>Status auf bereit setzen</a></tr>");
+							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form></td><td><a href='debug.php?update_status=$printer_id&status=0' class='btn btn-success'>Status auf bereit setzen</a></td></tr>");
 						$cnt--;
 					}
 					echo("</tbody></table></div></div></div></div>");
