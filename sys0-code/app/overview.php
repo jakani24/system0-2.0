@@ -216,7 +216,7 @@ function load_user()
                                                 mysqli_stmt_bind_result($stmt,$filament_color);
                                                 mysqli_stmt_fetch($stmt);
 
-                                                if($is_free==0){
+                                                if($is_free==0 && $system_status==0){
                                                         //printer is printing
                                                         exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/$username/json.json");
                                                         $fg=file_get_contents("/var/www/html/user_files/$username/json.json");
@@ -329,7 +329,7 @@ function load_user()
                                                                         echo("</div>");
                                                                         echo("</div>");
                                                         }
-                                                }else{
+                                                }else if($system_status==0){
                                                         //printer is free
                                                         echo("<div class='card m-4 align-self-start'>");
                                                         echo("<div class='card-body'>");
@@ -348,7 +348,25 @@ function load_user()
                                                         echo("</div>");
                                                         echo("</div>");
 
-                                                }
+                                                }else{
+							//printer is free but has a problem
+                                                        echo("<div class='card m-4 align-self-start'>");
+                                                        echo("<div class='card-body'>");
+                                                        echo("<h5 class='card-title'>Drucker $printer_id</h5>");
+                                                        echo("</div>");
+                                                        echo("<div class='card-body'>");
+                                                        echo("<iframe height='230px' scrolling='no' width='100%' src='/app/webcam.php?printer_id=$printer_id&username=".$_SESSION["username>
+                                                        echo("<table class='table table-borderless'>");
+                                                        echo("<thead>");
+                                                        echo("<tr><td>Status</td><td style='color:red'>Problem / nicht Betriebsbereit</td></tr>");
+                                                        if(!empty($filament_color) && $filament_color!=NULL)
+                                                                echo("<tr><td>Filamentfarbe</td><td >$filament_color</td></tr>");
+                                                        echo("</thead>");
+                                                        echo("</table>");
+                                                        echo("</div>");
+                                                        echo("</div>");
+
+						}
                                                 $cnt--;
                                         }
                                         echo("</div></div>");
