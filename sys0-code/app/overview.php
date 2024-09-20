@@ -414,7 +414,8 @@ function load_user()
 		    <h5 class="modal-title" id="exampleModalLabel">Klasse angeben</h5>
 		  </div>
 			<div class="modal-body">
-				<p>Hallo <?php echo(str_replace(".","",str_replace("@kantiwattwil.ch","",$_SESSION["username"]))); ?> bitte wähle deine Klasse aus der Liste unten aus.</p>
+				<p>Hallo <?php echo(str_replace("."," ",str_replace("@kantiwattwil.ch","",$_SESSION["username"]))); ?> bitte wähle deine Klasse aus der Liste unten aus. <br
+Wenn deine Klasse nicht in der Liste ist, bitte deine Lehrperson deine Klasse in den Einstellungen hinzuzufügen.</p>
 				<form action="overview.php?set_class" method="post">
 					<select name="class">
 					<?php
