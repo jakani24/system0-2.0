@@ -355,7 +355,7 @@ function load_user()
                                                         echo("<h5 class='card-title'>Drucker $printer_id</h5>");
                                                         echo("</div>");
                                                         echo("<div class='card-body'>");
-                                                        echo("<iframe height='230px' scrolling='no' width='100%' src='/app/webcam.php?printer_id=$printer_id&username=".$_SESSION["username>
+                                                        echo("<iframe height='230px' scrolling='no' width='100%' src='/app/webcam.php?printer_id=$printer_id&username=".$_SESSION["username"]."&url=$url&rotation=$rotation'></iframe>");
                                                         echo("<table class='table table-borderless'>");
                                                         echo("<thead>");
                                                         echo("<tr><td>Status</td><td style='color:red'>Problem / nicht Betriebsbereit</td></tr>");
