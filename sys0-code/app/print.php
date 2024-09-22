@@ -373,7 +373,7 @@ function is_time_between($startTime, $endTime, $checkTime) {
 							<?php
 							//get number of printers
 							$num_of_printers=0;
-							$sql="select count(*) from printer where free=1";
+							$sql="select count(*) from printer where free=1 and system_status=0";
 							$stmt = mysqli_prepare($link, $sql);
 							mysqli_stmt_execute($stmt);
 							mysqli_stmt_store_result($stmt);
@@ -437,7 +437,7 @@ function is_time_between($startTime, $endTime, $checkTime) {
 								
 								//get number of printers
 								$num_of_printers=0;
-								$sql="select count(*) from printer";
+								$sql="select count(*) from printer where system_status=0";
 								$stmt = mysqli_prepare($link, $sql);
 								mysqli_stmt_execute($stmt);
 								mysqli_stmt_store_result($stmt);
