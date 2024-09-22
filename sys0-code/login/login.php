@@ -17,11 +17,9 @@ require_once "../waf/salt.php";
 require_once "keepmeloggedin.php";
 include "../assets/components.php";
 $error=logmein($link);
-
 if($error==="success")
 {
         header("LOCATION: /app/overview.php");
-
 }
 
 // Define variables and initialize with empty values
@@ -60,40 +58,39 @@ EOF;
 		}
 // Processing form data when form is submitted
 if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
- 
+
     // Check if username is empty
     if(empty(trim($_POST["username"]))){
         $username_err = "Please enter username.";
     } else{
         $username = trim($_POST["username"]);
     }
-    
+
     // Check if password is empty
     if(empty(trim($_POST["password"]))){
         $password_err = "Please enter your password.";
     } else{
         $password = trim($_POST["password"]);
     }
-    
+
     // Validate credentials
     if(empty($username_err) && empty($password_err)){
         // Prepare a select statement
         $sql = "SELECT id, username, password, role, color,banned,banned_reason ,telegram_id,notification_telegram,notification_mail, class_id FROM users WHERE username = ?";
-        
+
         if($stmt = mysqli_prepare($link, $sql)){
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "s", $param_username);
-            
             // Set parameters
             $param_username = htmlspecialchars($username);
-            
+
             // Attempt to execute the prepared statement
             if(mysqli_stmt_execute($stmt)){
                 // Store result
                 mysqli_stmt_store_result($stmt);
-                
+
                 // Check if username exists, if yes then verify password
-                if(mysqli_stmt_num_rows($stmt) == 1){                    
+                if(mysqli_stmt_num_rows($stmt) == 1){
                     // Bind result variables
                     mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $role,$color,$banned,$banned_reason,$telegram_id,$notification_telegram,$notification_mail,$class_id);
                     if(mysqli_stmt_fetch($stmt)){
@@ -137,8 +134,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
 				    $_SESSION["telegram_id"]=$telegram_id;
 				    $_SESSION["notification_telegram"]=$notification_telegram;
 				    $_SESSION["notification_mail"]=$notification_mail;
-					$_SESSION["class_id"]=$class_id;
-				
+				    $_SESSION["class_id"]=$class_id;
+
 		                    // Redirect user to welcome page
 		                        log_("$username logged in","LOGIN:SUCCESS");
 		                        header("location:/app/overview.php");
@@ -168,13 +165,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="login"){
             mysqli_stmt_close($stmt);
         }
     }
-    
+
     // Close connection
     mysqli_close($link);
 }
 // Processing form data when form is submitted and user wants to create new user
 if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="create_user"){
- 
     // Validate username
     if(empty(trim($_POST["username"]))){
         $err = "Please enter a username.";
@@ -183,19 +179,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="create_user"){
     } else{
         // Prepare a select statement
         $sql = "SELECT id FROM users WHERE username = ?";
-        
+
         if($stmt = mysqli_prepare($link, $sql)){
             // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "s", $param_username);
-            
+
             // Set parameters
             $param_username = trim($_POST["username"]);
-            
             // Attempt to execute the prepared statement
             if(mysqli_stmt_execute($stmt)){
                 /* store result */
                 mysqli_stmt_store_result($stmt);
-                
                 if(mysqli_stmt_num_rows($stmt) == 1){
                     $err = "This username is already taken.";
                 } else{
@@ -209,7 +203,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="create_user"){
             mysqli_stmt_close($stmt);
         }
     }
-    
+
     // Validate password
     if(empty(trim($_POST["password"]))){
         $err = "Please enter a password.";     
