@@ -111,6 +111,16 @@ if(isset($_GET["del"])){
 				        while($row = $result->fetch_assoc()) {
 				        	echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td>".$row["name"]."</td><td><a href='reservations.php?del=".$row["res_id"]."'>Löschen</a></td><tr>");
 				        }
+					$stmt->close();
+					//check if is set for teachers, which do not have a class but always id 0
+					$sql="select reservations.id as res_id,time_to,time_from,day from reservations WHERE for_class=0 ORDER BY reservations.id desc;";
+					$stmt = $link->prepare($sql);
+                                        $stmt->execute();
+                                        $result = $stmt->get_result();
+					while($row = $result->fetch_assoc()) {
+						echo("<tr><td>".$row["time_from"]."</td><td>".$row["time_to"]."</td><td>".$row["day"]."</td><td>Lehrer</td><td><a href='reservations.php?del=".$row["res_id"]."'>Löschen</a></td><tr>");
+					}
+
 					echo("</table>");
 				
 				?>
