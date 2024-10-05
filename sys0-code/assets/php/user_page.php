@@ -205,7 +205,7 @@
 											<i class="fa-solid fa-file fa-6x justify-content-center"></i>
 										</div>
 										<div class="card-body">
-											<h5 class="card-title">View system0 Log</h5>
+											<h5 class="card-title">System0 Protokoll ansehen</h5>
 											<p class="card-text">Zeigen Sie das Protokoll der Systemaktivitäten und -ereignisse an.</p>
 											<a href="/app/view_log.php" class="stretched-link"></a>
 										</div>
@@ -220,7 +220,7 @@
 											<i class="fa-solid fa-key fa-6x justify-content-center"></i>
 										</div>
 										<div class="card-body">
-											<h5 class="card-title">View the system0 API Key</h5>
+											<h5 class="card-title">System0 APIkey ansehen</h5>
 											<p class="card-text">Zeigen Sie den API-Schlüssel an, der für den Zugriff auf die Systemfunktionalitäten verwendet wird.</p>
 											<a href="/app/view_apikey.php" class="stretched-link"></a>
 										</div>
@@ -235,9 +235,9 @@
 											<i class="fa-solid fa-print fa-6x justify-content-center"></i>
 										</div>
 										<div class="card-body">
-											<h5 class="card-title">Drucker Einstellungen</h5>
+											<h5 class="card-title">Drucker & allgemeine Einstellungen</h5>
 											<p class="card-text">Hier findest du das Debug-Tool und die Einstellungen.</p>
-											<a href="/app/debug.php" class="stretched-link"></a>
+											<a href="/app/debug.php?show=printer_settings" class="stretched-link"></a>
 										</div>
 
 									</div>

@@ -31,11 +31,12 @@ function update_input(input,action,id){
 
 }
 
-function delete_input(input,action,id,row){
+async function delete_input(input,action,id,row){
 	var selector=document.getElementById(input);
 	var selector_value=selector.value;
-	fetch("/api/printer_settings.php?action="+action+"&value="+selector.value+"&id="+id);
-	document.getElementById("table1").deleteRow(row);
+	await fetch("/api/printer_settings.php?action="+action+"&value="+selector.value+"&id="+id);
+	//document.getElementById("table1").deleteRow(row);
+	location.reload();
 }
 </script>
 <?php
@@ -48,6 +49,7 @@ function delete_input(input,action,id,row){
 <?php 
 	$color=$_SESSION["color"]; 
 	include "../assets/components.php";
+	$tab=$_GET["show"];
 ?>
 <div id="content"></div>
 
@@ -59,6 +61,22 @@ function delete_input(input,action,id,row){
 	<div class="container mt-5" style="min-height: 95vh;">
 		<div class="row justify-content-center">
 	  	<div style="width: 100hh">
+		<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link" href="debug.php?show=printer_settings" id="printer_settings_tab">Druckereinstellungen</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="debug.php?show=camera_settings" id="camera_settings_tab">Kameraeinstellungen</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="debug.php?show=class_settings" id="class_settings_tab">Klasseneinstellungen</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="debug.php?show=filament_settings" id="filament_settings_tab">Filamenteinstellungen</a>
+			</li>
+
+		</ul>
+		<div id="printer_settings" style="display:none">
 	      <h1>Druckerfreigabe erzwingen (falls beim freigeben Fehlermeldungen angezeigt werden)</h1>
 				<?php
 					if(isset($_POST['free']))
@@ -128,16 +146,17 @@ function delete_input(input,action,id,row){
 						mysqli_stmt_fetch($stmt);
 
 						if($system_status==0)
-							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form></td><td><a href='debug.php?update_status=$printer_id&status=1' class='btn btn-danger'>Status auf kaputt setzen</a></td></tr>");
+							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id&show=$tab'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form></td><td><a href='debug.php?update_status=$printer_id&status=1&show=$tab' class='btn btn-danger'>Status auf kaputt setzen</a></td></tr>");
 						else
-							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form></td><td><a href='debug.php?update_status=$printer_id&status=0' class='btn btn-success'>Status auf bereit setzen</a></td></tr>");
+							echo("<tr><td>$printer_id</td><td><form method='POST' action='?free=$printer_id&show=$tab'><button type='submit' value='free'  name='free' class='btn btn-dark'>Free</button></form></td><td><a href='debug.php?update_status=$printer_id&status=0&show=$tab' class='btn btn-success'>Status auf bereit setzen</a></td></tr>");
 						$cnt--;
 					}
 					echo("</tbody></table></div></div></div></div>");
 				?>
 				<br><br>
 
-
+			</div>
+			<div id="camera_settings" style="display:none">
 			<!-- Rotation der Druckerkameras: -->
 			<h1>Rotation der Druckerkameras</h1>
 			<?php
@@ -177,7 +196,8 @@ function delete_input(input,action,id,row){
 				}
 				echo("</tbody></table></div></div></div>");
 			?>
-			<br><br>
+			</div></div>
+			<div id="class_settings" style="display:none">
 			<h1>Klassen</h1>
 			<?php
 				
@@ -194,7 +214,7 @@ function delete_input(input,action,id,row){
 					echo("<div class='container'><div class='row'><div class='col'><div class='overflow-auto'><table class='table' id='table2'><thead><tr><th>Klasse</th><th>Hinzufügen/Löschen</th></tr></thead><tbody>");
 					
 					//form to add a color
-					echo("<form action='debug.php?action=add_class' method='post'>");
+					echo("<form action='debug.php?action=add_class&show=$tab' method='post'>");
 						echo("<td><input type='text' placeholder='Klasse' name='class_name' required></input></td>");
 						echo("<td><button type='submit' value='add' class='btn btn-primary'>Hinzufügen</button></td>");
 					echo("</form>");
@@ -226,7 +246,8 @@ function delete_input(input,action,id,row){
 					echo("</div>");
 
 			?>
-				
+				</div>
+				<div id="filament_settings" style="display:none">
 				<h1>Filamente</h1>
 				<?php
 					//list printers => form => color
@@ -243,7 +264,7 @@ function delete_input(input,action,id,row){
 					echo("<div class='container'><div class='row'><div class='col'><div class='overflow-auto'><table class='table' id='table1'><thead><tr><th>Filamente</th><th>Farbe</th><th>Hinzufügen/Löschen</th></tr></thead><tbody>");
 					
 					//form to add a color
-					echo("<form action='debug.php?action=add_filament' method='post'>");
+					echo("<form action='debug.php?action=add_filament&show=$tab' method='post'>");
 						echo("<td><input type='number' placeholder='Filament id' name='filament_id' required></input></td>");
 						echo("<td><input type='text' placeholder='filament  Farbe' name='filament_name' required></input></td>");
 						echo("<td><button type='submit' value='add' class='btn btn-primary'>Hinzufügen</button></td>");
@@ -276,6 +297,7 @@ function delete_input(input,action,id,row){
 					echo("</div>");
 				
 				?>
+				</div>
 				<?php
 					test_queue($link);
 				?>
@@ -284,6 +306,18 @@ function delete_input(input,action,id,row){
 	  </div>
 	</div>
 	<div id="footer"></div>
+<script>
+	//decide which div should be shown:
+    // Get the URL parameters
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+
+    // Get the value of the "show" parameter
+    const show_div = document.getElementById(urlParams.get('show'));
+	const nav_tab = document.getElementById(urlParams.get('show')+"_tab");
+	show_div.style.display="block";
+	nav_tab.setAttribute('class', 'nav-link active');
+</script>
 </body>
 
 </html>
