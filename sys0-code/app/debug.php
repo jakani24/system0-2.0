@@ -348,7 +348,7 @@ async function delete_input(input,action,id,row){
 							$sql="select username, id, filament_usage from users where filament_usage > 5000 ORDER BY filament_usage DESC";
 						if(isset($_POST["username"])){
 							$username_search=htmlspecialchars($_POST["username"]);
-							$sql="select username, id, filament_usage from users where username='$username_search' ORDER BY filament_usage DESC";
+							$sql="select username, id, filament_usage from users where username LIKE '%$username_search%' ORDER BY filament_usage DESC";
 						}
 						if(isset($_GET["high_usage"]) or isset($_POST["username"])){
 							//list users
