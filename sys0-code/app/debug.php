@@ -333,7 +333,7 @@ async function delete_input(input,action,id,row){
             					<button type="submit" class="btn btn-primary">Suchen</button>
 					</form>
 					<br>
-					<a class="btn btn-primary" href="debug.php?show=usr_fil_stats&high_usage">Nutzer mit mehr als 5 Meter nutzung anzeigen</a>
+					<a class="btn btn-primary" href="debug.php?show=usr_fil_stats&high_usage">Nutzer mit mehr als 1 Kg nutzung anzeigen</a>
 					<!-- list users -->
 					<?php
 						if(isset($_GET["reset"])){
@@ -344,7 +344,7 @@ async function delete_input(input,action,id,row){
 							$stmt->close();
 						}
 						if(isset($_GET["high_usage"]))
-							$sql="select username, id, filament_usage from users where filament_usage > 5000 ORDER BY filament_usage DESC";
+							$sql="select username, id, filament_usage from users where filament_usage > ((filament_usage*1.24)/1000) ORDER BY filament_usage DESC";
 						if(isset($_POST["username"])){
 							$username_search=htmlspecialchars($_POST["username"]);
 							$sql="select username, id, filament_usage from users where username LIKE '%$username_search%' ORDER BY filament_usage DESC";
