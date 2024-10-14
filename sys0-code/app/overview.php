@@ -131,6 +131,24 @@ function load_user()
                                                 $sql="update printer set free=1,printing=0,cancel=0 ,used_by_userid=0 where id=$printer_id";
                                                 $stmt = mysqli_prepare($link, $sql);
                                                 mysqli_stmt_execute($stmt);
+						//try to find out how much filament was used
+						$stmt->close();
+						//load apikey etc
+						$url="";
+						$apikey="";
+						$sql="select printer_url,apikey from printer where id=$printer_id";
+						$stmt = mysqli_prepare($link, $sql);
+                                                mysqli_stmt_execute($stmt);
+                                                mysqli_stmt_store_result($stmt);
+                                                mysqli_stmt_bind_result($stmt, $url,$apikey);
+                                                mysqli_stmt_fetch($stmt);
+						$stmt->close();
+						//connect to the printer
+						exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/$username/finish.json");
+						$fg=file_get_contents("/var/www/html/user_files/$username/finish.json");
+                                                $json=json_decode($fg,true);
+						$filament_usage=$json['job']['filament']['tool0']['length'];
+						echo("used $filament_usage mm of filament");
                                         }
                                         if(isset($_GET['remove_queue'])&&$_GET["rid"]==($_SESSION["rid"]-1))
                                         {
