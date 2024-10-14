@@ -10,7 +10,7 @@
 	</head>
 	<body>
 		<!-- Display the first image -->
-		<a id="image-link" href="/user_files/<?php echo $username; ?>/<?php echo $printer_url; ?>.jpeg" target="_blank">
+		<a id="image-link" href='<?php echo("webcam.php?username=$username&url=$printer_url&rotation=$rotation"); ?>' target="_blank">
 			<img id="webcam-image" style="transform: rotate(<?php echo $rotation; ?>deg);" width="100%" src="/user_files/<?php echo $username; ?>/<?php echo $printer_url; ?>.jpeg" alt="Webcam Feed">
 		</a>
 		<script>
