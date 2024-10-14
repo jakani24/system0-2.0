@@ -360,10 +360,9 @@ async function delete_input(input,action,id,row){
 							mysqli_stmt_store_result($stmt);
 							mysqli_stmt_bind_result($stmt, $usr_username, $usr_id,$usr_filament_usage);
 
-							echo "<h2>User List</h2>";
+							echo "<h2>Suchergebnisse</h2>";
 							echo "<table class='table' style='overflow-x: auto'>
         							<tr>
-        							    <th>ID</th>
         							    <th>Username</th>
 								    <th>Filament nutzung</th>
        								    <th>Nutzung zurücksetzen</th>
@@ -373,7 +372,6 @@ async function delete_input(input,action,id,row){
 							    while (mysqli_stmt_fetch($stmt)) {
 								$real_usage=($usr_filament_usage/1000);
         							echo "<tr>
-                							<td>{$usr_id}</td>
                 							<td>{$usr_username}</td>
 									<td>{$real_usage} Meter</td>
 									<td><a href='debug.php?show=usr_fil_stats&reset={$usr_id}'>Zurücksetzen</a></td>
