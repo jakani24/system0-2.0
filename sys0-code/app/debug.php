@@ -371,10 +371,11 @@ async function delete_input(input,action,id,row){
 
 							if (mysqli_stmt_num_rows($stmt) > 0) {
 							    while (mysqli_stmt_fetch($stmt)) {
+								$real_usage=($usr_filament_usage/1000)
         							echo "<tr>
                 							<td>{$usr_id}</td>
                 							<td>{$usr_username}</td>
-									<td>{$usr_filament_usage}</td>
+									<td>{$real_usage} Meter</td>
 									<td><a href='debug.php?show=usr_fil_stats&reset={$usr_id}'>Zurücksetzen</a></td>
               							</tr>";
     							    }
