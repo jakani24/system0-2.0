@@ -237,7 +237,7 @@
 											<i class="fa-solid fa-print fa-6x justify-content-center"></i>
 										</div>
 										<div class="card-body">
-											<h5 class="card-title">Drucker & allgemeine Einstellungen</h5>
+											<h5 class="card-title">Einstellungen & Statistiken</h5>
 											<p class="card-text">Hier findest du das Debug-Tool und die Einstellungen.</p>
 											<a href="/app/debug.php?show=printer_settings" class="stretched-link"></a>
 										</div>
