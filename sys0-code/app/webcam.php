@@ -10,8 +10,9 @@
 	</head>
 	<body>
 		<!-- Display the first image -->
-		<img id="webcam-image" style="transform: rotate(<?php echo $rotation; ?>deg);" width="100%" src="/user_files/<?php echo $username; ?>/<?php echo $printer_url; ?>.jpeg" alt="Webcam Feed">
-
+		<a id="image-link" href="/user_files/<?php echo $username; ?>/<?php echo $printer_url; ?>.jpeg" target="_blank">
+			<img id="webcam-image" style="transform: rotate(<?php echo $rotation; ?>deg);" width="100%" src="/user_files/<?php echo $username; ?>/<?php echo $printer_url; ?>.jpeg" alt="Webcam Feed">
+		</a>
 		<script>
 			// Function to call PHP script to download the latest image and then swap it
 			function loadAndSwapImage() {
