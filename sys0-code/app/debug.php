@@ -75,6 +75,9 @@ async function delete_input(input,action,id,row){
 				<a class="nav-link" href="debug.php?show=filament_settings" id="filament_settings_tab">Filamenteinstellungen</a>
 			</li>
 
+			 <li class="nav-item">
+                                <a class="nav-link" href="debug.php?show=srv_stats" id="srv_stats_tab">Serverstatistiken</a>
+                        </li>
 		</ul>
 		<div id="printer_settings" style="display:none">
 	      <h1>Druckerfreigabe erzwingen (falls beim freigeben Fehlermeldungen angezeigt werden)</h1>
@@ -295,8 +298,31 @@ async function delete_input(input,action,id,row){
 					}
 					echo("</tbody></table></div></div></div>");
 					echo("</div>");
-				
 				?>
+				</div>
+
+				<div id="srv_stats" style="display:none">
+					<div class="container my-5">
+       					 	<h1 class="text-center mb-4">Server Stats</h1>
+       				 		<div id="stats" class="row text-center">
+        			    			<!-- Stats will be dynamically loaded here via AJAX -->
+        					</div>
+				    	</div>
+
+   					<script>
+       						function refreshStats() {
+            						$.ajax({
+               							url: "/api/server_stats.php", // Load from server_stats.php, which includes auth and stats
+                						method: "GET",
+        			        			success: function (data) {
+        								$("#stats").html(data);
+        				        		}
+     							});
+        					}
+					    refreshStats();
+
+    					    setInterval(refreshStats, 1000);
+    					</script>
 				</div>
 				<?php
 					test_queue($link);
