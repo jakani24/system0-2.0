@@ -20,6 +20,8 @@
 		var tel_id=a.checked;
 		fetch("/api/update_settings.php?"+div_id+"="+tel_id);
 	}
+	//check if sendmail must be executed
+	fetch("/api/sendmail.php");
   </script>
 
 	<style>
