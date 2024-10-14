@@ -38,7 +38,7 @@ $(document).ready(function () {
         <div class="col-md-auto">
             <h1>Log Entries</h1>
 
-            <!-- Filter Form -->
+            <!-- Search Form -->
             <div class="overflow-auto">
                 <form method="GET" action="">
                     <table class="table">
@@ -52,49 +52,37 @@ $(document).ready(function () {
                         </tr>
                         <tr>
                             <td>---</td>
-                            <td>---</td>
                             <td>
-                                <select class="form-select" name="type_">
-                                    <option value="All_types">All Types</option>
-                                    <option value="PRINT::UPLOAD::PRINTER">PRINT::UPLOAD::PRINTER</option>
-                                    <option value="PRINT:JOB:START:FAILED">PRINT:JOB:START:FAILED</option>
-                                    <option value="PRINT::UPLOAD::QUEUE">PRINT::UPLOAD::QUEUE</option>
-                                    <option value="PRINT::UPLOAD::FILE::FAILED">PRINT::UPLOAD::FILE::FAILED</option>
-                                    <option value="JOB::PRINTERCTRL::FREE">JOB::PRINTERCTRL::FREE</option>
-                                    <option value="JOB::QUEUECTRL::REMOVE">JOB::QUEUECTRL::REMOVE</option>
-                                    <option value="JOB::PRINTERCTRL::CANCEL::FAILED">JOB::PRINTERCTRL::CANCEL::FAILED</option>
-                                    <option value="JOB::PRINTERCTRL::CANCEL">JOB::PRINTERCTRL::CANCEL</option>
-                                </select>
+                                <!-- Search by IP Address -->
+                                <input type="text" class="form-control" name="search_ip" value="<?= isset($_GET['search_ip']) ? htmlspecialchars($_GET['search_ip']) : '' ?>" placeholder="Search IP...">
                             </td>
                             <td>
-                                <select class="form-select" id="username" name="username">
-                                    <option value="All_usernames">All Users</option>
-                                    <?php
-                                    // Fetch all usernames in one query
-                                    $sql = "SELECT username FROM users ORDER BY username ASC";
-                                    $stmt = mysqli_prepare($link, $sql);
-                                    mysqli_stmt_execute($stmt);
-                                    mysqli_stmt_bind_result($stmt, $uname);
-
-                                    // Populate the dropdown with usernames
-                                    while (mysqli_stmt_fetch($stmt)) {
-                                        echo '<option value="' . htmlspecialchars($uname) . '">' . htmlspecialchars($uname) . '</option>';
-                                    }
-                                    mysqli_stmt_close($stmt);
-                                    ?>
-                                </select>
+                                <!-- Search by Type -->
+                                <input type="text" class="form-control" name="search_type" value="<?= isset($_GET['search_type']) ? htmlspecialchars($_GET['search_type']) : '' ?>" placeholder="Search Type...">
                             </td>
                             <td>
-                                <button type="submit" class="btn btn-primary">Apply Filter</button>
+                                <!-- Search by Username -->
+                                <input type="text" class="form-control" name="search_username" value="<?= isset($_GET['search_username']) ? htmlspecialchars($_GET['search_username']) : '' ?>" placeholder="Search Username...">
+                            </td>
+                            <td>
+                                <!-- Search by Info -->
+                                <input type="text" class="form-control" name="search_info" value="<?= isset($_GET['search_info']) ? htmlspecialchars($_GET['search_info']) : '' ?>" placeholder="Search Info...">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5">
+                                <button type="submit" class="btn btn-primary">Search</button>
                             </td>
                         </tr>
                         </thead>
                         <tbody>
 
                         <?php
-                        // Define default filters
-                        $type_filter = isset($_GET["type_"]) ? $_GET["type_"] : "All_types";
-                        $user_filter = isset($_GET["username"]) ? $_GET["username"] : "All_usernames";
+                        // Retrieve search terms from GET parameters
+                        $search_ip = isset($_GET['search_ip']) ? $_GET['search_ip'] : '';
+                        $search_type = isset($_GET['search_type']) ? $_GET['search_type'] : '';
+                        $search_username = isset($_GET['search_username']) ? $_GET['search_username'] : '';
+                        $search_info = isset($_GET['search_info']) ? $_GET['search_info'] : '';
 
                         // Pagination variables
                         $items_per_page = 25;
@@ -126,11 +114,13 @@ $(document).ready(function () {
                         // Reverse the log entries to display the latest first
                         $log_entries = array_reverse($log_entries);
 
-                        // Filter log entries by type and username
-                        $filtered_entries = array_filter($log_entries, function ($entry) use ($type_filter, $user_filter) {
-                            $type_match = ($type_filter === "All_types" || $entry['type'] === $type_filter);
-                            $user_match = ($user_filter === "All_usernames" || $entry['username'] === $user_filter);
-                            return $type_match && $user_match;
+                        // Filter log entries by search terms (partial matches)
+                        $filtered_entries = array_filter($log_entries, function ($entry) use ($search_ip, $search_type, $search_username, $search_info) {
+                            $ip_match = empty($search_ip) || stripos($entry['ip'], $search_ip) !== false;
+                            $type_match = empty($search_type) || stripos($entry['type'], $search_type) !== false;
+                            $username_match = empty($search_username) || stripos($entry['username'], $search_username) !== false;
+                            $info_match = empty($search_info) || stripos($entry['info'], $search_info) !== false;
+                            return $ip_match && $type_match && $username_match && $info_match;
                         });
 
                         // Calculate total pages and slice the log entries for the current page
@@ -163,19 +153,19 @@ $(document).ready(function () {
                     <ul class="pagination justify-content-center">
                         <?php if ($current_page > 1): ?>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<?= $current_page - 1 ?>&type_=<?= urlencode($type_filter) ?>&username=<?= urlencode($user_filter) ?>">Previous</a>
+                                <a class="page-link" href="?page=<?= $current_page - 1 ?>&search_ip=<?= urlencode($search_ip) ?>&search_type=<?= urlencode($search_type) ?>&search_username=<?= urlencode($search_username) ?>&search_info=<?= urlencode($search_info) ?>">Previous</a>
                             </li>
                         <?php endif; ?>
 
                         <?php for ($page = 1; $page <= $total_pages; $page++): ?>
                             <li class="page-item <?= ($page === $current_page) ? 'active' : '' ?>">
-                                <a class="page-link" href="?page=<?= $page ?>&type_=<?= urlencode($type_filter) ?>&username=<?= urlencode($user_filter) ?>"><?= $page ?></a>
+                                <a class="page-link" href="?page=<?= $page ?>&search_ip=<?= urlencode($search_ip) ?>&search_type=<?= urlencode($search_type) ?>&search_username=<?= urlencode($search_username) ?>&search_info=<?= urlencode($search_info) ?>"><?= $page ?></a>
                             </li>
                         <?php endfor; ?>
 
                         <?php if ($current_page < $total_pages): ?>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<?= $current_page + 1 ?>&type_=<?= urlencode($type_filter) ?>&username=<?= urlencode($user_filter) ?>">Next</a>
+                                <a class="page-link" href="?page=<?= $current_page + 1 ?>&search_ip=<?= urlencode($search_ip) ?>&search_type=<?= urlencode($search_type) ?>&search_username=<?= urlencode($search_username) ?>&search_info=<?= urlencode($search_info) ?>">Next</a>
                             </li>
                         <?php endif; ?>
                     </ul>
