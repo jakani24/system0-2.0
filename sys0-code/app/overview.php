@@ -149,7 +149,7 @@ function load_user()
                                                 $json=json_decode($fg,true);
 						if(isset($json['job']['filament']['tool0']['length'])){
 							$filament_usage=$json['job']['filament']['tool0']['length'];
-							$sql="UPDATE users SET filament_usage = filemant_usage + $filament_usage WHERE id = $id";
+							$sql="UPDATE users SET filament_usage = filament_usage + $filament_usage WHERE id = $id";
 							$stmt = mysqli_prepare($link, $sql);
                                                 	mysqli_stmt_execute($stmt);
 						}
