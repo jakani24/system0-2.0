@@ -149,9 +149,9 @@ function load_user()
                                                 $json=json_decode($fg,true);
 						$userid=$_SESSION["id"];
 						if(isset($json['job']['filament']['tool0']['length'])){
-							$filament_usage=$json['job']['filament']['tool0']['length'];
+							$filament_usage=intval($json['job']['filament']['tool0']['length']);
 							$sql="UPDATE users SET filament_usage = filament_usage + $filament_usage WHERE id = $userid";
-							echo($sql);
+							//echo($sql);
 							$stmt = mysqli_prepare($link, $sql);
                                                 	mysqli_stmt_execute($stmt);
 						}
