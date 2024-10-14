@@ -147,8 +147,14 @@ function load_user()
 						exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/$username/finish.json");
 						$fg=file_get_contents("/var/www/html/user_files/$username/finish.json");
                                                 $json=json_decode($fg,true);
-						$filament_usage=$json['job']['filament']['tool0']['length'];
-						echo("used $filament_usage mm of filament");
+						if(isset($json['job']['filament']['tool0']['length'])){
+							$filament_usage=$json['job']['filament']['tool0']['length'];
+							$sql="UPDATE users SET filament_usage = filemant_usage + $filament_usage WHERE id = $id";
+							$stmt = mysqli_prepare($link, $sql);
+                                                	mysqli_stmt_execute($stmt);
+						}
+						
+						//echo("used $filament_usage mm of filament");
                                         }
                                         if(isset($_GET['remove_queue'])&&$_GET["rid"]==($_SESSION["rid"]-1))
                                         {

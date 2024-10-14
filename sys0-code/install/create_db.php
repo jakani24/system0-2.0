@@ -28,7 +28,8 @@ $sql = "CREATE TABLE IF NOT EXISTS users (
 	notification_way INT,
 	notification_mail INT,
 	notification_telegram INT,
- 	class_id INT
+ 	class_id INT,
+	filament_usage INT
 	)";
 $link->query($sql);
 //printer table
