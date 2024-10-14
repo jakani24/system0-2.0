@@ -78,6 +78,9 @@ async function delete_input(input,action,id,row){
 			 <li class="nav-item">
                                 <a class="nav-link" href="debug.php?show=srv_stats" id="srv_stats_tab">Serverstatistiken</a>
                         </li>
+			 <li class="nav-item">
+                                <a class="nav-link" href="debug.php?show=usr_fil_stats" id="usr_fil_stats_tab">Benutzer-Filament Statistik</a>
+                        </li>
 		</ul>
 		<div id="printer_settings" style="display:none">
 	      <h1>Druckerfreigabe erzwingen (falls beim freigeben Fehlermeldungen angezeigt werden)</h1>
@@ -323,6 +326,66 @@ async function delete_input(input,action,id,row){
 
     					    setInterval(refreshStats, 1000);
     					</script>
+				</div>
+				<div id="usr_fil_stats" style="display:none">
+					<h1 class="text-center mb-4">Genutztes Filament nach Nutzer</h1>
+					<form action="debug.php?show=usr_fil_stats" method="POST">
+						<input type="text" class="form-control flex-grow-1 mr-2" name="username" placeholder="Benutzername eingeben" >
+            					<button type="submit" class="btn btn-primary">Suchen</button>
+					</form>
+					<br>
+					<a class="btn btn-primary" href="debug.php?show=usr_fil_stats&high_usage">Nutzer mit mehr als 5 Meter nutzung anzeigen</a>
+					<!-- list users -->
+					<?php
+						if(isset($_GET["reset"])){
+							$usr_id=intval(htmlspecialchars($_GET["reset"]));
+							$sql="update users set filament_usage = 0 where id = $usr_id";
+							$stmt = mysqli_prepare($link, $sql);
+                                                        mysqli_stmt_execute($stmt);
+							$stmt->close();
+						}
+						if(isset($_GET["high_usage"]))
+							$sql="select username, id, filament_usage from users where filament_usage > 5000 ORDER BY filament_usage DESC";
+						if(isset($_POST["username"])){
+							$username_search=htmlspecialchars($_POST["username"]);
+							$sql="select username, id, filament_usage from users where username='$username_search' ORDER BY filament_usage DESC";
+						}
+						if(isset($_GET["high_usage"]) or isset($_POST["username"])){
+							//list users
+							$usr_username="";
+							$usr_id="";
+							$usr_filament_usage="";
+							$stmt = mysqli_prepare($link, $sql);
+							mysqli_stmt_execute($stmt);
+							mysqli_stmt_store_result($stmt);
+							mysqli_stmt_bind_result($stmt, $usr_username, $usr_id,$usr_filament_usage);
+
+							echo "<h2>User List</h2>";
+							echo "<table class='table' style='overflow-x: auto'>
+        							<tr>
+        							    <th>ID</th>
+        							    <th>Username</th>
+								    <th>Filament nutzung</th>
+       								    <th>Nutzung zurücksetzen</th>
+								</tr>";
+
+							if (mysqli_stmt_num_rows($stmt) > 0) {
+							    while (mysqli_stmt_fetch($stmt)) {
+        							echo "<tr>
+                							<td>{$usr_id}</td>
+                							<td>{$usr_username}</td>
+									<td>{$usr_filament_usage}</td>
+									<td><a href='debug.php?show=usr_fil_stats&reset={$usr_id}'>Zurücksetzen</a></td>
+              							</tr>";
+    							    }
+							} else {
+    								echo "<tr><td colspan='2'>No users found.</td></tr>";
+							}
+
+							echo "</table>";
+						}
+
+					?>
 				</div>
 				<?php
 					test_queue($link);
