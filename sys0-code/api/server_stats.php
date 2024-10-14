@@ -29,7 +29,7 @@ $ram_usage = shell_exec("free | grep Mem | awk '{print $3/$2 * 100.0}'");
 $ram_usage = round($ram_usage, 2);
 
 // Get Disk usage
-$disk_usage = shell_exec("df -h / | grep / | awk '{print $5}'");
+$disk_usage = shell_exec("df -h /def/sda1 | grep / | awk '{print $5}'");
 
 // Get server uptime
 $uptime = shell_exec("uptime -p");
