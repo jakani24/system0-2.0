@@ -1,5 +1,5 @@
-# system0-test
-This is the test repo for experimental system0 features. Currently it houses the new docker system that we are developing instead of the normal sys0-image.
+# system0-2.0
+The new version of system0. It runs on Docker and is much smarter with many new features compared to the original system0.
 
 # system0
 Frontend system for octoprint<br>
