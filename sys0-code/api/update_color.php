@@ -78,6 +78,11 @@ function load_user()
 		</select><br><br>
 		<input type="submit" class="btn btn-dark mb-5" value="Farbe aktualisieren" id="button">
 		</form>
+		<?php
+			if(isset($_POST["printer"])){
+				echo("<center><div class='alert alert-success' role='alert'>Farbe geändert</div></center>");
+			}
+		?>
 	    </div>
 	  </div>
 	</div>
