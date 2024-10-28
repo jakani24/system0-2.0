@@ -355,8 +355,51 @@ function time_to_seconds($print_time) {
 
 							echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
 							$printing_time=find_print_time($path);
+															date_default_timezone_set('Europe/Zurich');
+								$reservation_conflict = false;
+								$today = date("Y-m-d");
+								$time_now = date("H:i");
 
-							if(check_file($path)  or isset($_POST["ignore_unsafe"])){
+								preg_match('/(\d+)h/', $print_time, $hours_match);
+								preg_match('/(\d+)m/', $print_time, $minutes_match);
+								$hours = isset($hours_match[1]) ? (int)$hours_match[1] : 0;
+								$minutes = isset($minutes_match[1]) ? (int)$minutes_match[1] : 0;
+
+								// Convert $now into a DateTime object and add hours and minutes
+								$time = DateTime::createFromFormat('H:i', $time_now);
+								$time->modify("+{$hours} hour");
+								$time->modify("+{$minutes} minutes");
+
+								// Format $time back into a string
+								$time_now = $time->format('H:i');
+
+								// Query to get reservations for the current day
+								$sql = "SELECT time_from, time_to, for_class FROM reservations WHERE day='$today';";
+								$stmt = $link->prepare($sql);
+								$stmt->execute();
+								$result = $stmt->get_result();
+
+								while ($row = $result->fetch_assoc()) {
+								    // Check for overlap with the entire print time period
+								    if (is_time_between($row["time_from"], $row["time_to"], $time_now)) {
+        								$reservation_conflict = true;
+        								$for_class[] = $row["for_class"];
+    								    }
+								}
+
+								// Ensure $for_class is set if no conflicts were found
+								if (!isset($for_class)) {
+								    $for_class[] = 0;
+								}
+
+								// Display conflict message if necessary
+								if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
+								    $block = true;
+								} else {
+								    $block = false;
+								}
+							if($block==false){
+							 if(check_file($path)  or isset($_POST["ignore_unsafe"])){
 								exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
 								//file is on printer and ready to be printed
 								$userid=$_SESSION["id"];
@@ -380,9 +423,12 @@ function time_to_seconds($print_time) {
 									mysqli_stmt_execute($stmt);	
 									mysqli_stmt_close($stmt);	
 								}
-							}else{
+							 }else{
 								$warning=true;
 								echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Achtung, deinen Bett oder Extruder Temperatur ist sehr hoch eingestellt. Dies wird zur zerstörung des Druckes und somit zu Müll führen. Bitte setze diese Temperaturen tiefer in den Einstellungen deines Slicers.</div></center>");
+							 }
+							}else{
+									echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Dein Druck konnte nicht gestartet werden, da er nicht fertig wäre, befor eine andere Klasse die Drucker reserviert hat.</div></center>";
 							}
 					}
 					else{
