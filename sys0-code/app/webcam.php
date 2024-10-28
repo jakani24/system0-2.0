@@ -34,7 +34,8 @@
 				};
 				xhr.send(); // Execute the request
 			}
-
+			//do first load
+			loadAndSwapImage();
 			// Reload the image every 5 seconds
 			setInterval(loadAndSwapImage, 5000);
 		</script>
