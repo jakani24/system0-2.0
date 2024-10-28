@@ -36,6 +36,24 @@ function check_file($path){//check file for temperature which are to high
 	}
 }
 
+function find_print_time($file) {
+    $handle = fopen($file, "r");
+    $targetPhrase = "; estimated printing time (normal mode) = ";
+    $time = null;
+
+    while (($line = fgets($handle)) !== false) {
+        if (strpos($line, $targetPhrase) !== false) {
+            // Extract the time after the target phrase
+            $time = trim(str_replace($targetPhrase, "", $line));
+            break; // Stop once the desired line is found
+        }
+    }
+
+    fclose($handle);
+
+    return $time;
+}
+
 function is_time_between($startTime, $endTime, $checkTime) {
     // Convert times to timestamps
     $startTimestamp = strtotime($startTime);
@@ -50,6 +68,22 @@ function is_time_between($startTime, $endTime, $checkTime) {
         // Normal case: check if the time is between start and end time
         return ($checkTimestamp >= $startTimestamp && $checkTimestamp <= $endTimestamp);
     }
+}
+
+function time_to_seconds($print_time) {
+    $seconds = 0;
+
+    if (preg_match('/(\d+)h/', $print_time, $matches)) {
+        $seconds += $matches[1] * 3600; // hours to seconds
+    }
+    if (preg_match('/(\d+)m/', $print_time, $matches)) {
+        $seconds += $matches[1] * 60; // minutes to seconds
+    }
+    if (preg_match('/(\d+)s/', $print_time, $matches)) {
+        $seconds += $matches[1]; // seconds
+    }
+
+    return $seconds;
 }
 
 ?>
@@ -167,7 +201,7 @@ function is_time_between($startTime, $endTime, $checkTime) {
 
 				}
 			}
-			else
+			else //print on printers, no queue
 			{
 				$sql="select printer_url, free, system_status,apikey,printer_url from printer where id=$printer_id";
 				//echo $sql;
@@ -214,7 +248,53 @@ function is_time_between($startTime, $endTime, $checkTime) {
 							if(move_uploaded_file($_FILES['file_upload']['tmp_name'], $path)) {
 								echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Erfolg! Die Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen.</div></center>");
 								echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
-								if(check_file($path) or isset($_POST["ignore_unsafe"])){
+								$print_time=find_print_time($path);
+								//check if the printers are reserved at the time when this print finishes
+								date_default_timezone_set('Europe/Zurich');
+								$reservation_conflict = false;
+								$today = date("Y-m-d");
+								$time_now = date("H:i");
+
+								preg_match('/(\d+)h/', $print_time, $hours_match);
+								preg_match('/(\d+)m/', $print_time, $minutes_match);
+								$hours = isset($hours_match[1]) ? (int)$hours_match[1] : 0;
+								$minutes = isset($minutes_match[1]) ? (int)$minutes_match[1] : 0;
+
+								// Convert $now into a DateTime object and add hours and minutes
+								$time = DateTime::createFromFormat('H:i', $time_now);
+								$time->modify("+{$hours} hour");
+								$time->modify("+{$minutes} minutes");
+
+								// Format $time back into a string
+								$time_now = $time->format('H:i');
+
+								// Query to get reservations for the current day
+								$sql = "SELECT time_from, time_to, for_class FROM reservations WHERE day='$today';";
+								$stmt = $link->prepare($sql);
+								$stmt->execute();
+								$result = $stmt->get_result();
+
+								while ($row = $result->fetch_assoc()) {
+								    // Check for overlap with the entire print time period
+								    if (is_time_between($row["time_from"], $row["time_to"], $time_now)) {
+        								$reservation_conflict = true;
+        								$for_class[] = $row["for_class"];
+    								    }
+								}
+
+								// Ensure $for_class is set if no conflicts were found
+								if (!isset($for_class)) {
+								    $for_class[] = 0;
+								}
+
+								// Display conflict message if necessary
+								if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
+								    $block = true;
+								} else {
+								    $block = false;
+								}
+								if($block==false){
+								 if(check_file($path) or isset($_POST["ignore_unsafe"])){
 									exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
 									//file is on printer and ready to be printed
 									$userid=$_SESSION["id"];
@@ -238,9 +318,12 @@ function is_time_between($startTime, $endTime, $checkTime) {
 										mysqli_stmt_execute($stmt);	
 										mysqli_stmt_close($stmt);	
 									}
-								}else{
+								 }else{
 									$warning=true;
 									echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Achtung, deine Bett oder Extruder Temperatur ist sehr hoch eingestellt. Dies wird zur zerstörung des Druckes und somit zu Müll führen. Bitte setze diese Temperaturen tiefer in den Einstellungen deines Slicers.</div></center>");
+								 }
+								}else{
+									echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Dein Druck konnte nicht gestartet werden, da er nicht fertig wäre, befor eine andere Klasse die Drucker reserviert hat.</div></center>";
 								}
 							}
 							else
@@ -265,12 +348,14 @@ function is_time_between($startTime, $endTime, $checkTime) {
 					$stmt = mysqli_prepare($link, $sql);
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_store_result($stmt);
-						
+
 					//if(mysqli_stmt_num_rows($stmt) == 1){ turned off because user does not need to have a printer key
 					if(true){
 					mysqli_stmt_close($stmt);
-	
+
 							echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
+							$printing_time=find_print_time($path);
+
 							if(check_file($path)  or isset($_POST["ignore_unsafe"])){
 								exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
 								//file is on printer and ready to be printed
@@ -279,9 +364,6 @@ function is_time_between($startTime, $endTime, $checkTime) {
 								sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to printer ".$_POST["printer"]."",$_SESSION["username"],"PRINT::UPLOAD::PRINTER");//notes,username,type
 								$fg=file_get_contents("/var/www/html/user_files/$username/json.json");
 								$json=json_decode($fg,true);
-								//echo('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/system0/html/user_files/'.$username.'/json.json');
-								//echo("<br><br><br>");							
-								//var_dump($json);
 								if($json['effectivePrint']==false or $json["effectiveSelect"]==false)
 								{
 									echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Ein Fehler ist aufgetreten und der Vorgang konnte nicht gestartet werden. Warte einen Moment und versuche es dann erneut.</div></center>");
