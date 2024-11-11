@@ -11,6 +11,7 @@ services:
         ipv4_address: 192.168.178.2
     volumes:
       - sys0-db:/var/lib/mysql
+    restart: always
 
   sys0-srv:
     build:
@@ -28,6 +29,7 @@ services:
       - ./sys0-code:/var/www/html
       - ./apache-conf:/etc/apache2/sites-enabled/
       - ./php-conf:/usr/local/etc/php/
+    restart: always
 networks:
   sys0-network:
     driver: bridge
