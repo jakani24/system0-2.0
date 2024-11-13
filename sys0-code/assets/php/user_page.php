@@ -126,7 +126,21 @@
 
 								</div>
 								');
-						
+							echo('
+                                                                <div class="card m-2" style="width: 14em;" href="#">
+                                                                        <br>
+                                                                        <div class="d-flex justify-content-center align-items-center card-img-top" style="height:auto;margin-top:20px">
+                                                                                <i class="fa-solid fa-server fa-6x justify-content-center"></i>
+                                                                        </div>
+
+                                                                        <div class="card-body">
+                                                                                <h5 class="card-title">Systemstatus</h5>
+                                                                                <p class="card-text">Hier kannst du den Systemstatus unserer Server einsehen</p>
+                                                                                <a href="https://stats.uptimerobot.com/4nr4WTYQVy" class="stretched-link"></a>
+                                                                        </div>
+
+                                                                </div>
+                                                                ');
 							if($_SESSION["role"][5]==="1")
 								echo('
 									<div class="card m-2" style="width: 14em;" href="#">
