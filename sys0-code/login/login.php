@@ -227,6 +227,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="create_user"){
         }
     }
     // Validate kantimail
+    //if(1) //put this to disable ksw only mail
     if(strpos($_POST["username"],"@kantiwattwil.ch")===false){
         $err = "Only members of KSW can access this site. (prename.name@kantiwattwil.ch).";     
     } 
@@ -239,6 +240,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" and $_GET["action"]=="create_user"){
         if($stmt = mysqli_prepare($link, $sql)){
             // Bind variables to the prepared statement as parameters
             $banned=1;
+	    //$banned=0; //put this to disable email verification enforcment
 	    $banned_reason="Account muss zuerst verifiziert werden (Link in Mail)";
 		$tel=0;
 		$mail=1;
