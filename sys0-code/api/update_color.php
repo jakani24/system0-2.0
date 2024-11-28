@@ -69,7 +69,10 @@ function load_user()
 				mysqli_stmt_fetch($stmt);
 				if($id!=0 && $id!=$last_id)
 				{
-					echo("<option printer='$id' value='$id'>Printer $id</option>");
+					if($id==$_POST["printer"])
+						echo("<option printer='$id' value='$id' selected>Drucker $id</option>");
+					else
+						echo("<option printer='$id' value='$id'>Drucker $id</option>");
 				}
 				$last_id=$id;
 				$num_of_printers--;

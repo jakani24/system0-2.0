@@ -502,7 +502,7 @@ function update_cancel_modal(printer_id,rid){
                     <h5 class="modal-title">Druck abbrechen</h5>
                   </div>
                         <div class="modal-body">
-				Möchtest du den Druck wirklich abbrechen? Dies kann nicht rückgängig gemacht werden!
+				Möchtest du den Druck wirklich abbrechen?
                         </div>
                         <div class="modal-footer">
 				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">nicht abbrechen</button>
