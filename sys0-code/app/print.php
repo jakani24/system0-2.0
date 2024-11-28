@@ -466,7 +466,7 @@ function time_to_seconds($print_time) {
 					if ($reservation_conflict && !in_array($class,$for_class) && $class!=0) {
 					    echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!</div></center>";
 						$block=true;
-					}else if($class==0){
+					}else if($class==0 && $reservation_conflict){
 						$block=false;
 						echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert!<br>Als Lehrperson können Sie zwar jetzt trozdem drucken, sollten es aber nur tun, wenn Sie sicher sind, dass nicht gerade eine andere Lehrperson mit einer Klasse drucken will!</div></center>";
 					}else{
