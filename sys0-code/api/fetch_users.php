@@ -29,6 +29,8 @@ while ($row = $result->fetch_assoc()) {
     }
     if($row["class_id"]==0){
 	echo "<option value='0' selected>Lehrperson</option>";
+    }else{
+	echo "<option value='0'>Lehrperson</option>";
     }
     echo "</select>
     </td>";

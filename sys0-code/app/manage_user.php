@@ -36,7 +36,8 @@ function load_user()
         <input type="text" class="form-control" name="username" placeholder="Benutzername eingeben">
         <button type="submit" class="btn btn-primary">Suchen</button>
     </form>
-    <table class="table mt-5" id="userTable">
+    <div style="overflow-x: auto;">
+    <table class="table mt-5" id="userTable" >
         <thead>
             <tr>
                 <th>Nutzer</th>
@@ -58,6 +59,7 @@ function load_user()
         </thead>
         <tbody></tbody>
     </table>
+    </div>
 </div>
 
 <div id="footer">
