@@ -453,7 +453,7 @@ function time_to_seconds($print_time) {
         				$result = $stmt->get_result();
         				//$row = $result->fetch_assoc();
         				$time_now=date("H:i");
-					
+
         				while ($row = $result->fetch_assoc()) {
 					    if (is_time_between($row["time_from"], $row["time_to"], $time_now)) {
 						$reservation_conflict = true;
@@ -466,14 +466,16 @@ function time_to_seconds($print_time) {
 					if ($reservation_conflict && !in_array($class,$for_class) && $class!=0) {
 					    echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!</div></center>";
 						$block=true;
+					}else if($class==0){
+						$block=false;
+						echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert!<br>Als Lehrperson können Sie zwar jetzt trozdem drucken, sollten es aber nur tun, wenn Sie sicher sind, dass nicht gerade eine andere Lehrperson mit einer Klasse drucken will!</div></center>";
 					}else{
 						$block=false;
 					}
 
 				?>
 				<div class="container d-flex align-items-center justify-content-center" >
-				
-				
+
 				<form class="mt-5" enctype="multipart/form-data" method="POST" action="">
 					<?php if(!isset($_GET["cloudprint"])){
 						echo ('<div class="form-group">');

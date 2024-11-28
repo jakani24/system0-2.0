@@ -26,6 +26,12 @@ function load_user()
         $('#content').load("/assets/php/user_page.php");
         });
 }
+function update_cancel_modal(printer_id,rid){
+        const modal_=document.getElementById("cancel_modal");
+        const button=document.getElementById("send_cancel_command");
+        button.href="overview.php?cancel="+printer_id+"&rid="+rid;
+	document.getElementById("open_cancel_modal").click();
+}
 </script>
 <?php
         echo "<script type='text/javascript' >load_user()</script>";
@@ -115,7 +121,12 @@ function load_user()
 </head>
 <body>
         <div id="content"></div>
-        <div>
+      	<!-- placeholder button to be activated to open cancel modal -->
+	<button style="display:none" type="button" class="btn btn-primary" data-bs-toggle="modal" id="open_cancel_modal" data-bs-target="#cancel_modal">
+		  Launch cancel modal
+	</button>
+
+	<div>
                 <div class="row justify-content-center">
                 <div style="width: 100%;min-height:95vh">
                                 <?php
@@ -349,7 +360,8 @@ function load_user()
                                                                         echo("<tr><td>Vergangene Druckzeit</td><td>$print_time</td></tr>");
                                                                         echo("<tr><td>Datei</td><td><div class='hover-element'>".short_path($json["job"]["file"]["name"],10,10)."<div class='description'>".$json["job"]["file"]["name"]."</div></div></td></tr>");
                                                                         if($userid==$_SESSION["id"] or $role[3]==="1"){
-                                                                                echo("<tr><td><a class='btn btn-danger' href='overview.php?cancel=$printer_id&rid=".$_SESSION["rid"]."'>Abbrechen</a></td></tr>");
+                                                                                //echo("<tr><td><a class='btn btn-danger' data-toggle='modal' data-target='cancel_modal'>Abbrechen</a></td></tr>");
+										echo("<tr><td><button class='btn btn-danger' onclick='update_cancel_modal(\"$printer_id\",\"".$_SESSION["rid"]."\")'>Abbrechen</button></td></tr>");
                                                                         }
                                                                         echo("</thead>");
                                                                         echo("</table>");
@@ -451,36 +463,55 @@ function load_user()
         </div>
 	<!-- class selector -->
 	<div class="modal fade" id="select_class" tabindex="1" role="dialog" aria-labelledby="class" aria-hidden="false">
-	      <div class="modal-dialog" role="document">
-		<div class="modal-content">
-		  <div class="modal-header">
-		    <h5 class="modal-title" id="exampleModalLabel">Klasse angeben</h5>
-		  </div>
-			<div class="modal-body">
-				<p>Hallo <?php echo(str_replace("."," ",str_replace("@kantiwattwil.ch","",$_SESSION["username"]))); ?> bitte wähle deine Klasse aus der Liste unten aus. <br>
-Wenn deine Klasse nicht in der Liste ist, bitte deine Lehrperson deine Klasse in den Einstellungen hinzuzufügen.</p>
-				<form action="overview.php?set_class" method="post">
-					<select name="class">
-					<?php
-						//alle klassen auflisten
-						$sql="select * from class";
-						$stmt = mysqli_prepare($link, $sql);
-						$stmt->execute();
-						$result = $stmt->get_result();
-						while($row = $result->fetch_assoc()) {
-							echo("<option value='".$row["id"]."'>".$row["name"]."</option>");
-						}
-					?>
-					<option value='0'>Lehrperson</option>
-					</select>
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+		  		<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">Klasse angeben</h5>
+				</div>
+				<div class="modal-body">
+		  			<p>Hallo <?php echo(str_replace("."," ",str_replace("@kantiwattwil.ch","",$_SESSION["username"]))); ?> bitte wähle deine Klasse aus der Liste unten aus. <br>
+					Wenn deine Klasse nicht in der Liste ist, bitte deine Lehrperson deine Klasse in den Einstellungen hinzuzufügen.</p>
+					<form action="overview.php?set_class" method="post">
+						<select name="class">
+						<?php
+							//alle klassen auflisten
+							$sql="select * from class";
+							$stmt = mysqli_prepare($link, $sql);
+							$stmt->execute();
+							$result = $stmt->get_result();
+							while($row = $result->fetch_assoc()) {
+								echo("<option value='".$row["id"]."'>".$row["name"]."</option>");
+							}
+						?>
+							<option value='0'>Lehrperson</option>
+						</select>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" name="submit" class="btn btn-dark">Bestätigen</button>
+				</div>
 			</div>
-			<div class="modal-footer">
-				<button type="submit" name="submit" class="btn btn-dark">Bestätigen</button>
-			</div>
-			  </div>
 			</form>
 		</div>
 	</div>
+
+	<!-- cancel modal -->
+        <div class="modal fade" id="cancel_modal" tabindex="1" role="dialog" aria-labelledby="cancel_modal" aria-hidden="false">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Druck abbrechen</h5>
+                  </div>
+                        <div class="modal-body">
+				Möchtest du den Druck wirklich abbrechen? Dies kann nicht rückgängig gemacht werden!
+                        </div>
+                        <div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">nicht abbrechen</button>
+                                <a type="button" id="send_cancel_command" href="#" class="btn btn-danger">Druck abbrechen</a>
+                        </div>
+                          </div>
+                </div>
+        </div>
+
 	<?php
 		if($_SESSION["class_id"]==""){
 			echo("<script>");
