@@ -289,14 +289,11 @@ if (own_id == printer.userid || cancel_all == "1") {
     `;
 
     // Replace the content around the iframe
-    while (iframeParent.firstChild) {
+    while (iframeParent.firstChild && printerCard.firstChild !== iframe) {
         iframeParent.removeChild(iframeParent.firstChild);
     }
 
-    // Append the new content and reattach the iframe
-    iframeParent.appendChild(tempContainer.firstChild);
-    iframeParent.appendChild(iframe);
-
+ printerCard.insertBefore(contentContainer, iframe);
 
 		}else{
 			printerCard.innerHTML = `
