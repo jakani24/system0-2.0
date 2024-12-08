@@ -131,7 +131,6 @@
     }
 
 </style>
-</style>
 </head>
 <body>
 	<div id="content"></div>
