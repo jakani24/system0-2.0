@@ -256,10 +256,30 @@ function updatePrinterData(data) {
 	}
 
         if(printer.view==0 || printer.view==2){
+// Assuming `printerCardContainer` is the parent element where cards are appended
+const printerCardContainer = document.getElementById('printerCardsContainer');
+let printerCard = document.getElementById(`printer-${printer.printer_id}`);
+
+if (!printerCard) {
+    // Create a new card element if it doesn't exist
+    printerCard = document.createElement('div');
+    printerCard.id = `printer-${printer.printer_id}`;
+    printerCard.className = 'card';
+    
+    // Optionally, add an iframe if it's part of the initial structure
+    const iframe = document.createElement('iframe');
+    iframe.src = ''; // Set the source if needed
+    printerCard.appendChild(iframe);
+
+    // Append the new card to the container
+    printerCardContainer.appendChild(printerCard);
+}
+
+// Now handle updating the card content
 if (own_id == printer.userid || cancel_all == "1") {
-    // Locate the iframe
+    // Locate the iframe within the card
     const iframe = printerCard.querySelector('iframe');
-    if (!iframe) return; // If iframe doesn't exist, exit the function
+    if (!iframe) return; // If iframe doesn't exist, exit (though it should always exist now)
 
     // Construct the new HTML content
     const data = `
@@ -295,6 +315,7 @@ if (own_id == printer.userid || cancel_all == "1") {
             printerCard.removeChild(child);
         }
     }
+
 
 
 		}else{
