@@ -36,6 +36,7 @@ mysqli_stmt_store_result($stmt);
 mysqli_stmt_bind_result($stmt, $rotation, $is_free, $printer_id, $url, $apikey, $cancel, $userid, $system_status, $filament_color,$real_color,$used_by_user);
 
 while (mysqli_stmt_fetch($stmt)) {
+	$used_by_user=explode("@",$used_by_user)[0];
     $printer = [
         "rotation" => $rotation,
         "is_free" => $is_free,
@@ -54,6 +55,7 @@ while (mysqli_stmt_fetch($stmt)) {
         $json = json_decode($fg, true);
         $printer["progress"] = (int) $json['progress']['completion'];
         $printer["file"] = short_path($json["job"]["file"]["name"], 10, 10);
+	$printer["full_file"]=$json["job"]["file"]["name"];
         $printer["print_time_total"] = seconds_to_time(intval($json["job"]["estimatedPrintTime"]));
         $printer["print_time_left"] = seconds_to_time(intval($json["progress"]["printTimeLeft"]));
         $printer["print_time"] = seconds_to_time(intval($json["progress"]["printTime"]));
@@ -74,6 +76,7 @@ while (mysqli_stmt_fetch($stmt)) {
         $printer["print_time_left"] = seconds_to_time(intval($json["progress"]["printTimeLeft"]));
         $printer["print_time"] = seconds_to_time(intval($json["progress"]["printTime"]));
 	$printer["print_status"]="Abgebrochen";
+	$printer["full_file"]=$json["job"]["file"]["name"];
 	$printer["view"]=2;
     }else if($system_status==0){
 	$printer["print_status"]="Bereit";
