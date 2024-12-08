@@ -107,27 +107,26 @@
 	load_user();
 </script>
 <style>
-//styles for the filename description
-    .description {
-        display: none; /* Hide the description by default */
-        position: absolute;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: #fff;
-        padding: 10px;
-        border-radius: 5px;
-        width: 200px;
+    .description {  
+        display: none; /* Hide the description by default */  
+        position: absolute;  
+        background-color: rgba(0, 0, 0, 0.7);  
+        color: #fff;  
+        padding: 10px;  
+        border-radius: 5px;  
+        width: 200px;  
+        z-index: 10; /* Ensure it appears above other elements */
     }
 
-    /* Style for the element to trigger hover */
-    .hover-element {
-        position: relative;
-        /* Add some space below the element */
+    /* Style for the element to trigger hover */  
+    .hover-element {  
+        position: relative;  
+        /* Add some space below the element */  
     }
-    /* Style for the element to trigger hover when hovered */
-    .hover-element:hover .description {
-        display: block; /* Show the description on hover */
+    /* Style for the element to trigger hover when hovered */  
+    .hover-element:hover .description {  
+        display: block; /* Show the description on hover */  
     }
-
 </style>
 </head>
 <body>
