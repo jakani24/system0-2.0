@@ -256,7 +256,7 @@ function updatePrinterData(data) {
 	}
 
         if(printer.view==0 || printer.view==2){
-		if (own_id == printer.userid || cancel_all == "1") {
+if (own_id == printer.userid || cancel_all == "1") {
     // Get the current iframe
     const iframe = printerCard.querySelector('iframe');
 
@@ -305,8 +305,7 @@ function updatePrinterData(data) {
     const placeholder = printerCard.querySelector('#iframe-placeholder');
     placeholder.parentNode.replaceChild(newIframe, placeholder);
 }
-
-
+}
 		}else{
 			printerCard.innerHTML = `
 				<div class="card-body">
