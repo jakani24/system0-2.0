@@ -23,10 +23,10 @@
 	if(isset($_GET['free'])&&$_GET["rid"]==($_SESSION["rid"]-1))
         {
 		$cnt="";
-                                                $printer_id=htmlspecialchars($_GET['free']);
-                                                $sql="select used_by_userid from printer where id=$printer_id";
-                                                $stmt = mysqli_prepare($link, $sql);
-                                                mysqli_stmt_execute($stmt);
+                $printer_id=htmlspecialchars($_GET['free']);
+                $sql="select used_by_userid from printer where id=$printer_id";
+                $stmt = mysqli_prepare($link, $sql);
+                mysqli_stmt_execute($stmt);
                                                 mysqli_stmt_store_result($stmt);
                                                 mysqli_stmt_bind_result($stmt, $cnt);
                                                 mysqli_stmt_fetch($stmt);
@@ -87,7 +87,6 @@
                                                 }
                                                 else
                                                 {
-							//echo("cancelling1");
                                                         $sql="update printer set cancel=1 where id=$printer_id";
                                                         $stmt = mysqli_prepare($link, $sql);
                                                         mysqli_stmt_execute($stmt);
@@ -108,8 +107,7 @@
 	load_user();
 </script>
 <style>
-<style>
-//styöes for the filename description
+//styles for the filename description
     .description {
         display: none; /* Hide the description by default */
         position: absolute;
