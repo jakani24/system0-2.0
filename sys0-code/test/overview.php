@@ -256,68 +256,30 @@ function updatePrinterData(data) {
 	}
 
         if(printer.view==0 || printer.view==2){
-// Assuming `printerCardContainer` is the parent element where cards are appended
-const printerCardContainer = document.getElementById('printerCardsContainer');
-let printerCard = document.getElementById(`printer-${printer.printer_id}`);
-
-if (!printerCard) {
-    // Create a new card element if it doesn't exist
-    printerCard = document.createElement('div');
-    printerCard.id = `printer-${printer.printer_id}`;
-    printerCard.className = 'card';
-    
-    // Optionally, add an iframe if it's part of the initial structure
-    const iframe = document.createElement('iframe');
-    iframe.src = ''; // Set the source if needed
-    printerCard.appendChild(iframe);
-
-    // Append the new card to the container
-    printerCardContainer.appendChild(printerCard);
-}
-
-// Now handle updating the card content
-if (own_id == printer.userid || cancel_all == "1") {
-    // Locate the iframe within the card
-    const iframe = printerCard.querySelector('iframe');
-    if (!iframe) return; // If iframe doesn't exist, exit (though it should always exist now)
-
-    // Construct the new HTML content
-    const data = `
-        <div class="card-body">
-            <h5 class="card-title">Drucker ${printer.printer_id}</h5>
-        </div>
-        <div class="card-body">
-            <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-            <table class="table table-borderless">
-                <thead>
-                    <tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
-                    <tr><td>Genutzt von</td><td>${printer.username}</td></tr>
-                    <tr><td>Filamentfarbe</td><td>${printer.filament_color}</td></tr>
-                    <tr><td>Erwartete Druckzeit</td><td>${printer.print_time_total}</td></tr>
-                    <tr><td>Verbleibende Druckzeit</td><td>${printer.print_time_left}</td></tr>
-                    <tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
-                    <tr><td>Datei</td><td><div class='hover-element'>${printer.file}<div class='description'>${printer.full_file}</div></div></td></tr>
-                </thead>
-                <tr><td><a class='btn btn-success' href='overview.php?free=${printer.printer_id}&rid=<?php echo($_SESSION["rid"]); ?>'>Freigeben</a></td></tr>
-            </table>
-        </div>
-    `;
-
-    // Insert the new content before the iframe
-    iframe.insertAdjacentHTML('beforebegin', data);
-
-    // Optionally, remove old content that is not part of the new data or iframe
-    const children = Array.from(printerCard.childNodes);
-    for (let child of children) {
-        if (child !== iframe && child !== iframe.previousElementSibling) {
-            printerCard.removeChild(child);
-        }
-    }
-
-
-
+		if(own_id==printer.userid || cancel_all=="1"){
+			printerCard.innerHTML = `
+        		    <div class="card-body">
+        		        <h5 class="card-title">Drucker ${printer.printer_id}</h5>
+        		    </div>
+        		    <div class="card-body">
+        		        <iframe height="230px" scrolling="no" width="100%" src="/app/webcam.php?printer_id=${printer.printer_id}&username=<?php echo($username); ?>&url=${printer.url}"></iframe>
+        		        <div class="progress">
+        		            <div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100"></div>
+        		        </div>
+        		        <table class="table table-borderless">
+        		            <thead>
+        		                <tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
+        		                <tr><td>Genutzt von</td><td>${printer.username}</td></tr>
+        		                <tr><td>Filamentfarbe</td><td>${printer.filament_color}</td></tr>
+        		                <tr><td>Erwartete Druckzeit</td><td>${printer.print_time_total}</td></tr>
+        		                <tr><td>Verbleibende Druckzeit</td><td>${printer.print_time_left}</td></tr>
+        		                <tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
+        		                <tr><td>Datei</td><td><div class='hover-element'>${printer.file}<div class='description'>${printer.full_file}</div></div></td></tr>
+        		            </thead>
+		        		<tr><td><a class='btn btn-success' href='overview.php?free=${printer.printer_id}&rid=<?php echo($_SESSION["rid"]); ?>'>Freigeben</a></td></tr>
+			        </table>
+        		    </div>
+        		`;
 		}else{
 			printerCard.innerHTML = `
 				<div class="card-body">
@@ -454,7 +416,7 @@ function getColorByStatus(status) {
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchPrinterData();
-    setInterval(fetchPrinterData, 15000); // Refresh every 6 seconds
+    setInterval(fetchPrinterData, 60000); // Refresh every 6 seconds
 });
 </script>
 
