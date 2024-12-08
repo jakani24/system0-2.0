@@ -41,7 +41,6 @@ while (mysqli_stmt_fetch($stmt)) {
         "is_free" => $is_free,
         "printer_id" => $printer_id,
         "url" => $url,
-        "apikey" => $apikey,
         "cancel" => $cancel,
         "userid" => $userid,
         "system_status" => $system_status,
@@ -57,6 +56,30 @@ while (mysqli_stmt_fetch($stmt)) {
         $printer["print_time_total"] = seconds_to_time(intval($json["job"]["estimatedPrintTime"]));
         $printer["print_time_left"] = seconds_to_time(intval($json["progress"]["printTimeLeft"]));
         $printer["print_time"] = seconds_to_time(intval($json["progress"]["printTime"]));
+	if($printer["progress"]==100){
+		$printer["print_status"]="Fertig";
+		$printer["view"]=0;
+	}else{
+		$printer["print_status"]="Drucken";
+		$printer["view"]=1;
+	}
+    }else if($cancel==1){
+	exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
+        $fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
+        $json = json_decode($fg, true);
+        $printer["progress"] = (int) $json['progress']['completion'];
+        $printer["file"] = short_path($json["job"]["file"]["name"], 10, 10);
+        $printer["print_time_total"] = seconds_to_time(intval($json["job"]["estimatedPrintTime"]));
+        $printer["print_time_left"] = seconds_to_time(intval($json["progress"]["printTimeLeft"]));
+        $printer["print_time"] = seconds_to_time(intval($json["progress"]["printTime"]));
+	$printer["print_status"]="Abgebrochen";
+	$printer["view"]=2;
+    }else if($system_status==0){
+	$printer["print_status"]="Bereit";
+	$printer["view"]=3;
+    }else{
+	$printer["print_status"]="Problem / Nicht betriebsbereit";
+	$printer["view"]=4;
     }
 
     $printers[] = $printer;
