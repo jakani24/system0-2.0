@@ -304,7 +304,7 @@ if (own_id == printer.userid || cancel_all == "1") {
     // Reattach the iframe at the placeholder
     const placeholder = printerCard.querySelector('#iframe-placeholder');
     placeholder.parentNode.replaceChild(newIframe, placeholder);
-}
+
 		}else{
 			printerCard.innerHTML = `
 				<div class="card-body">
