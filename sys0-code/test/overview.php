@@ -94,6 +94,23 @@
 
                                         }
 
+
+	if(isset($_GET["set_class"]) && isset($_POST["class"])){
+		$class_id=htmlspecialchars($_POST["class"]);
+		$sql="update users set class_id=$class_id where username='$username'";
+		$stmt = mysqli_prepare($link, $sql);
+		mysqli_stmt_execute($stmt);
+		$stmt->close();
+		$sql="select name from class where id=$class_id";
+		$stmt = mysqli_prepare($link, $sql);
+		mysqli_stmt_execute($stmt);
+		$class_name="";
+		mysqli_stmt_bind_result($stmt, $class_name);
+		$stmt->close();
+		$_SESSION["class"]=$class_name;
+		$_SESSION["class_id"]=$class_id;
+	}
+
 ?>
 
 <script src="/assets/js/load_page.js"></script>
@@ -107,25 +124,25 @@
 	load_user();
 </script>
 <style>
-    .description {  
-        display: none; /* Hide the description by default */  
-        position: absolute;  
-        background-color: rgba(0, 0, 0, 0.7);  
-        color: #fff;  
-        padding: 10px;  
-        border-radius: 5px;  
-        width: 200px;  
+    .description {
+        display: none; /* Hide the description by default */
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        width: 200px;
         z-index: 10; /* Ensure it appears above other elements */
     }
 
-    /* Style for the element to trigger hover */  
-    .hover-element {  
-        position: relative;  
-        /* Add some space below the element */  
+    /* Style for the element to trigger hover */
+    .hover-element {
+        position: relative;
+        /* Add some space below the element */
     }
-    /* Style for the element to trigger hover when hovered */  
-    .hover-element:hover .description {  
-        display: block; /* Show the description on hover */  
+    /* Style for the element to trigger hover when hovered */
+    .hover-element:hover .description {
+        display: block; /* Show the description on hover */
     }
 </style>
 </head>
@@ -136,7 +153,6 @@
 		  Launch cancel modal
 	</button>
 	<div id="printer-container"></div>
-	
 
 
 	<!-- Modals -->
