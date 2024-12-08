@@ -47,7 +47,7 @@ while (mysqli_stmt_fetch($stmt)) {
         "filament_color" => $filament_color,
     ];
 
-    if ($is_free == 0 && $system_status == 0) {
+    if ($is_free == 0 && $system_status == 0 && $cancel==0) {
         exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
         $fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
         $json = json_decode($fg, true);
