@@ -29,7 +29,7 @@ function short_path($filePath, $firstCharsCount, $lastCharsCount) {
 }
 
 $printers = [];
-$sql = "SELECT rotation, free, printer.id, printer_url, apikey, cancel, used_by_userid, system_status, printer.color, COALESCE(name, 'nicht verfügbar') AS real_color, COALESCE(username,'nicht verfügbar') FROM printer LEFT JOIN filament ON printer.color=internal_id LEFT JOIN users ON used_by_userid=users.id";
+$sql = "SELECT rotation, free, printer.id, printer_url, apikey, cancel, used_by_userid, system_status, printer.color, COALESCE(name, 'nicht verfügbar') AS real_color, COALESCE(username,'nicht verfügbar') FROM printer LEFT JOIN filament ON printer.color=internal_id LEFT JOIN users ON used_by_userid=users.id ORDER BY printer.id";
 $stmt = mysqli_prepare($link, $sql);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_store_result($stmt);
