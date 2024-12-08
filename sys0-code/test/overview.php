@@ -107,7 +107,7 @@ function getColorByStatus(status) {
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchPrinterData();
-    setInterval(fetchPrinterData, 60000); // Refresh every 60 seconds
+    setInterval(fetchPrinterData, 6000); // Refresh every 60 seconds
 });
 </script>
 
