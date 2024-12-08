@@ -262,7 +262,7 @@ function updatePrinterData(data) {
         		                <tr><td>Erwartete Druckzeit</td><td>${printer.print_time_total}</td></tr>
         		                <tr><td>Verbleibende Druckzeit</td><td>${printer.print_time_left}</td></tr>
         		                <tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
-        		                <tr><td>Datei</td><td><div class="hover-element">${printer.file}<div class="description">${printer.full_file}</div></div></td></tr>
+        		                <tr><td>Datei</td><td><div class='hover-element'>${printer.file}<div class='description'>${printer.full_file}</div></div></td></tr>
         		            </thead>
 		        		<tr><td><a class='btn btn-success' href='overview.php?free=${printer.printer_id}&rid=<?php echo($_SESSION["rid"]); ?>'>Freigeben</a></td></tr>
 			        </table>
