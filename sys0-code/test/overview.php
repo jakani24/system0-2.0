@@ -257,25 +257,19 @@ function updatePrinterData(data) {
 
         if(printer.view==0 || printer.view==2){
 if (own_id == printer.userid || cancel_all == "1") {
-    // Get the current iframe
+    // Extract the iframe
     const iframe = printerCard.querySelector('iframe');
+    const iframeParent = iframe.parentNode;
 
-    // Store necessary iframe attributes if needed
-    const iframeSrc = iframe ? iframe.src : null;
+    // Create a temporary container for the new content
+    const tempContainer = document.createElement('div');
 
-    // Remove iframe temporarily
-    if (iframe) {
-        printerCard.removeChild(iframe);
-    }
-
-    // Update the innerHTML, excluding the iframe initially
-    printerCard.innerHTML = `
+    // Set the new content, excluding the iframe
+    tempContainer.innerHTML = `
         <div class="card-body">
             <h5 class="card-title">Drucker ${printer.printer_id}</h5>
         </div>
         <div class="card-body">
-            <!-- Placeholder for iframe reattachment -->
-            <div id="iframe-placeholder"></div>
             <div class="progress">
                 <div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
@@ -294,16 +288,15 @@ if (own_id == printer.userid || cancel_all == "1") {
         </div>
     `;
 
-    // Create a new iframe element or use the existing one if it was stored
-    const newIframe = document.createElement('iframe');
-    newIframe.height = "230px";
-    newIframe.scrolling = "no";
-    newIframe.width = "100%";
-    newIframe.src = iframeSrc ? iframeSrc : `/app/webcam.php?printer_id=${printer.printer_id}&username=<?php echo($username); ?>&url=${printer.url}`;
+    // Replace the content around the iframe
+    while (iframeParent.firstChild) {
+        iframeParent.removeChild(iframeParent.firstChild);
+    }
 
-    // Reattach the iframe at the placeholder
-    const placeholder = printerCard.querySelector('#iframe-placeholder');
-    placeholder.parentNode.replaceChild(newIframe, placeholder);
+    // Append the new content and reattach the iframe
+    iframeParent.appendChild(tempContainer.firstChild);
+    iframeParent.appendChild(iframe);
+
 
 		}else{
 			printerCard.innerHTML = `
