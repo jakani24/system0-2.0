@@ -257,15 +257,12 @@ function updatePrinterData(data) {
 
         if(printer.view==0 || printer.view==2){
 if (own_id == printer.userid || cancel_all == "1") {
-    // Extract the iframe
+    // Locate the iframe
     const iframe = printerCard.querySelector('iframe');
-    const iframeParent = iframe.parentNode;
+    if (!iframe) return; // If iframe doesn't exist, exit the function
 
-    // Create a temporary container for the new content
-    const tempContainer = document.createElement('div');
-
-    // Set the new content, excluding the iframe
-    tempContainer.innerHTML = `
+    // Construct the new HTML content
+    const data = `
         <div class="card-body">
             <h5 class="card-title">Drucker ${printer.printer_id}</h5>
         </div>
@@ -283,17 +280,22 @@ if (own_id == printer.userid || cancel_all == "1") {
                     <tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
                     <tr><td>Datei</td><td><div class='hover-element'>${printer.file}<div class='description'>${printer.full_file}</div></div></td></tr>
                 </thead>
-                    <tr><td><a class='btn btn-success' href='overview.php?free=${printer.printer_id}&rid=<?php echo($_SESSION["rid"]); ?>'>Freigeben</a></td></tr>
+                <tr><td><a class='btn btn-success' href='overview.php?free=${printer.printer_id}&rid=<?php echo($_SESSION["rid"]); ?>'>Freigeben</a></td></tr>
             </table>
         </div>
     `;
 
-    // Replace the content around the iframe
-    while (iframeParent.firstChild && printerCard.firstChild !== iframe) {
-        iframeParent.removeChild(iframeParent.firstChild);
+    // Insert the new content before the iframe
+    iframe.insertAdjacentHTML('beforebegin', data);
+
+    // Optionally, remove old content that is not part of the new data or iframe
+    const children = Array.from(printerCard.childNodes);
+    for (let child of children) {
+        if (child !== iframe && child !== iframe.previousElementSibling) {
+            printerCard.removeChild(child);
+        }
     }
 
- printerCard.insertBefore(contentContainer, iframe);
 
 		}else{
 			printerCard.innerHTML = `
