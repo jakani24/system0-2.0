@@ -29,11 +29,11 @@ function short_path($filePath, $firstCharsCount, $lastCharsCount) {
 }
 
 $printers = [];
-$sql = "SELECT rotation, free, id, printer_url, apikey, cancel, used_by_userid, system_status, color FROM printer";
+$sql = "SELECT rotation, free, printer.id, printer_url, apikey, cancel, used_by_userid, system_status, printer.color, COALESCE(name, 'nicht verfügbar') AS real_color, COALESCE(username,'nicht verfügbar') FROM printer LEFT JOIN filament ON printer.color=internal_id LEFT JOIN users ON used_by_userid=users.id";
 $stmt = mysqli_prepare($link, $sql);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_store_result($stmt);
-mysqli_stmt_bind_result($stmt, $rotation, $is_free, $printer_id, $url, $apikey, $cancel, $userid, $system_status, $filament_color);
+mysqli_stmt_bind_result($stmt, $rotation, $is_free, $printer_id, $url, $apikey, $cancel, $userid, $system_status, $filament_color,$real_color,$used_by_user);
 
 while (mysqli_stmt_fetch($stmt)) {
     $printer = [
@@ -44,7 +44,8 @@ while (mysqli_stmt_fetch($stmt)) {
         "cancel" => $cancel,
         "userid" => $userid,
         "system_status" => $system_status,
-        "filament_color" => $filament_color,
+        "filament_color" => $real_color,
+	"username" => $used_by_user
     ];
 
     if ($is_free == 0 && $system_status == 0 && $cancel==0) {
