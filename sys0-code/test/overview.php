@@ -27,72 +27,69 @@
                 $sql="select used_by_userid from printer where id=$printer_id";
                 $stmt = mysqli_prepare($link, $sql);
                 mysqli_stmt_execute($stmt);
-                                                mysqli_stmt_store_result($stmt);
-                                                mysqli_stmt_bind_result($stmt, $cnt);
-                                                mysqli_stmt_fetch($stmt);
-                                                $sql="update printer set free=1,printing=0,cancel=0 ,used_by_userid=0 where id=$printer_id";
-                                                $stmt = mysqli_prepare($link, $sql);
-                                                mysqli_stmt_execute($stmt);
-						//try to find out how much filament was used
-						$stmt->close();
-						//load apikey etc
-						$url="";
-						$apikey="";
-						$sql="select printer_url,apikey from printer where id=$printer_id";
-						$stmt = mysqli_prepare($link, $sql);
-                                                mysqli_stmt_execute($stmt);
-                                                mysqli_stmt_store_result($stmt);
-                                                mysqli_stmt_bind_result($stmt, $url,$apikey);
-                                                mysqli_stmt_fetch($stmt);
-						$stmt->close();
-						//connect to the printer
-						exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/$username/finish.json");
-						$fg=file_get_contents("/var/www/html/user_files/$username/finish.json");
-                                                $json=json_decode($fg,true);
-						$userid=$_SESSION["id"];
-						if(isset($json['job']['filament']['tool0']['volume'])){
-							$filament_usage=intval($json['job']['filament']['tool0']['volume']);
-							$sql="UPDATE users SET filament_usage = COALESCE(filament_usage,0) + $filament_usage WHERE id = $cnt";
-							//echo($sql);
-							$stmt = mysqli_prepare($link, $sql);
-                                                	mysqli_stmt_execute($stmt);
-						}
-						
-                                        }
-                                        if(isset($_GET['remove_queue'])&&$_GET["rid"]==($_SESSION["rid"]-1))
-                                        {
-                                                $id=htmlspecialchars($_GET['remove_queue']);
-                                                $sql="delete from queue where id=$id";
-                                                $stmt = mysqli_prepare($link, $sql);
-                                                mysqli_stmt_execute($stmt);
-                                        }
-                                        if(isset($_GET['cancel'])&&$_GET["rid"]==($_SESSION["rid"]-1))
-                                        {
-					        $apikey="";
-                                                $printer_url="";
-                                                $printer_id=htmlspecialchars($_GET['cancel']);
-                                                $sql="select used_by_userid,apikey,printer_url from printer where id=$printer_id";
-                                                $stmt = mysqli_prepare($link, $sql);
-                                                mysqli_stmt_execute($stmt);
-                                                mysqli_stmt_store_result($stmt);
-                                                mysqli_stmt_bind_result($stmt, $cnt,$apikey,$printer_url);
-                                                mysqli_stmt_fetch($stmt);
+                mysqli_stmt_store_result($stmt);
+                mysqli_stmt_bind_result($stmt, $cnt);
+                mysqli_stmt_fetch($stmt);
+                $sql="update printer set free=1,printing=0,cancel=0 ,used_by_userid=0 where id=$printer_id";
+                $stmt = mysqli_prepare($link, $sql);
+                mysqli_stmt_execute($stmt);
+		//try to find out how much filament was used
+		$stmt->close();
+		//load apikey etc
+		$url="";
+		$apikey="";
+		$sql="select printer_url,apikey from printer where id=$printer_id";
+		$stmt = mysqli_prepare($link, $sql);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_store_result($stmt);
+                mysqli_stmt_bind_result($stmt, $url,$apikey);
+                mysqli_stmt_fetch($stmt);
+		$stmt->close();
+		//connect to the printer
+		exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/$username/finish.json");
+		$fg=file_get_contents("/var/www/html/user_files/$username/finish.json");
+                $json=json_decode($fg,true);
+		$userid=$_SESSION["id"];
+		if(isset($json['job']['filament']['tool0']['volume'])){
+			$filament_usage=intval($json['job']['filament']['tool0']['volume']);
+			$sql="UPDATE users SET filament_usage = COALESCE(filament_usage,0) + $filament_usage WHERE id = $cnt";
+			$stmt = mysqli_prepare($link, $sql);
+                        mysqli_stmt_execute($stmt);
+		}
+	}
+        if(isset($_GET['remove_queue'])&&$_GET["rid"]==($_SESSION["rid"]-1))
+        {
+        	$id=htmlspecialchars($_GET['remove_queue']);
+               	$sql="delete from queue where id=$id";
+                $stmt = mysqli_prepare($link, $sql);
+                mysqli_stmt_execute($stmt);
+	}
+        if(isset($_GET['cancel'])&&$_GET["rid"]==($_SESSION["rid"]-1))
+     	{
+		$apikey="";
+                $printer_url="";
+                $printer_id=htmlspecialchars($_GET['cancel']);
+               	$sql="select used_by_userid,apikey,printer_url from printer where id=$printer_id";
+                $stmt = mysqli_prepare($link, $sql);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_store_result($stmt);
+                mysqli_stmt_bind_result($stmt, $cnt,$apikey,$printer_url);
+                mysqli_stmt_fetch($stmt);
 
-                                                exec("curl -k -H \"X-Api-Key: $apikey\" -H \"Content-Type: application/json\" --data '{\"command\":\"cancel\"}' \"$printer_url/api/job\" > /var/www/html/user_files/$username/json.json");
-                                                $fg=file_get_contents("/var/www/html/user_files/$username/json.json");
-                                                $json=json_decode($fg,true);
-                                                if($json["error"]!="")
-                                                {
-                                                        echo("<div class='alert alert-danger' role='alert'>Beim abbrechen ist es zu einem Fehler gekommen. Bitte versuche es später erneut.</div>");
-                                                }
-                                                else
-                                                {
-                                                        $sql="update printer set cancel=1 where id=$printer_id";
-                                                        $stmt = mysqli_prepare($link, $sql);
-                                                        mysqli_stmt_execute($stmt);
-                                                }
-
-                                        }
+                exec("curl -k -H \"X-Api-Key: $apikey\" -H \"Content-Type: application/json\" --data '{\"command\":\"cancel\"}' \"$printer_url/api/job\" > /var/www/html/user_files/$username/json.json");
+                $fg=file_get_contents("/var/www/html/user_files/$username/json.json");
+                $json=json_decode($fg,true);
+                if($json["error"]!="")
+               	{
+                	echo("<div class='alert alert-danger' role='alert'>Beim abbrechen ist es zu einem Fehler gekommen. Bitte versuche es später erneut.</div>");
+                }
+                else
+                {
+                	$sql="update printer set cancel=1 where id=$printer_id";
+                        $stmt = mysqli_prepare($link, $sql);
+                        mysqli_stmt_execute($stmt);
+                 }
+	}
 
 
 	if(isset($_GET["set_class"]) && isset($_POST["class"])){
