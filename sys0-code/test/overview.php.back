@@ -216,7 +216,7 @@ function update_cancel_modal(printer_id,rid){
 	document.getElementById("open_cancel_modal").click();
 }
 function fetchPrinterData() {
-    fetch('/api/fetch_printer_data.php')
+    fetch('fetch_printer_data.php')
         .then(response => response.json())
         .then(data => {
             // Update the printer data on the page
@@ -416,7 +416,7 @@ function getColorByStatus(status) {
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchPrinterData();
-    setInterval(fetchPrinterData, 60000); // Refresh every 6 seconds
+    setInterval(fetchPrinterData, 15000); // Refresh every 6 seconds
 });
 </script>
 
