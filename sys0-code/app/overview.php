@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
 <head>
 <title>System0 Übersicht</title>
 <?php
@@ -198,7 +198,7 @@
 						</select>
 				</div>
 				<div class="modal-footer">
-					<button type="submit" name="submit" class="btn btn-dark">Bestätigen</button>
+					<button type="submit" name="submit" class="btn btn-secondary">Bestätigen</button>
 				</div>
 			</div>
 			</form>
@@ -362,7 +362,7 @@ function updatePrinterData(data) {
                                                         <tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
                                                         <tr><td>Filamentfarbe</td><td>${printer.filament_color}</td></tr>
                                                 </thead>
-                                        <tr><td><a class='btn btn-dark' href='print.php?preselect=${printer.printer_id}'>Drucken</a></td></tr>
+                                        <tr><td><a class='btn btn-secondary' href='print.php?preselect=${printer.printer_id}'>Drucken</a></td></tr>
 					</table>
                                 </div>
                         `;

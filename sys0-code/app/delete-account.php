@@ -12,7 +12,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 ?>
 
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
     <head>
       <title>Account settings</title>
       <!-- <link rel="stylesheet" href="/system0/html/php/login/css/style.css"> -->

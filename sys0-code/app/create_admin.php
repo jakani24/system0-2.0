@@ -136,7 +136,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 ?>
  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Sign Up</title>
@@ -215,7 +215,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 									</tbody>
 								</table>
 							</div>
-							<button type="submit" name="submit" class="btn btn-dark">Create Account</button><br><br>
+							<button type="submit" name="submit" class="btn btn-secondary">Create Account</button><br><br>
 						</form>
 						<?php 
 						    if(!empty($err)){

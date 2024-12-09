@@ -88,7 +88,7 @@ function time_to_seconds($print_time) {
 
 ?>
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
 	<?php
 	// Initialize the session
 	$warning=false;
@@ -633,7 +633,7 @@ function time_to_seconds($print_time) {
 					?>
 						<?php
 							if($block==false){
-								echo('<input type="submit" class="btn btn-dark mb-5" value="Datei drucken" onclick="show_loader();" id="button">');
+								echo('<input type="submit" class="btn btn-secondary mb-5" value="Datei drucken" onclick="show_loader();" id="button">');
 								echo('<div class="d-flex align-items-center">');
  					 				echo('<strong role="status" style="display:none" id="spinner">Hochladen...</strong>');
  					 				echo('<div class="spinner-border ms-auto" aria-hidden="true" style="display:none" id="spinner2"></div>');

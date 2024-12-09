@@ -10,7 +10,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
 ?>
 
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
 <head>
   <title>Account Einstellungen</title>
 </head>
@@ -61,7 +61,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION[
 					Ein Druckschlüssel ist ein Code, welcher ein Benutzer benutzen kann, um einen Druckauftrag zu starten.
 					</p>
 					    <form action="create_key.php?create=true" method="post">
-						<button type="submit" value="create_key" class="btn btn-dark">Neuen Druckschlüssel generieren</button>
+						<button type="submit" value="create_key" class="btn btn-secondary">Neuen Druckschlüssel generieren</button>
 					    </form>
 				</div>
 				<?php

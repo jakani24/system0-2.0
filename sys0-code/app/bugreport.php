@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
 <?php
 // Initialize the session
 session_start();
@@ -53,7 +53,7 @@ function load_user()
 					<label class="my-3" for="email">Deine Email für weitere Nachfragen (optional)</label>
 					<input type="text" class="form-control mx-auto" id="email" name="email" style="width:50%;" value="<?php echo($_SESSION["username"]); ?>">
 				  </div>
-				  <button type="submit" class="btn btn-dark my-5">abschicken</button>
+				  <button type="submit" class="btn btn-secondary my-5">abschicken</button>
 				</form>
 				<?php
 				  if(isset($_GET["sent"]))

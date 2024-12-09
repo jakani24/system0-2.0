@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
 <?php
 // Initialize the session
 session_start();
@@ -113,7 +113,7 @@ function load_user()
 					<button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#upoload_file" id="lnk_1">Datei Hochladen</button>
 					<form action="cloud.php" method="POST">
 						<input type="text" name="search" placeholder="Suchbegriff">
-						<button type="submit" class="btn btn-dark my-5">Suchen</button>
+						<button type="submit" class="btn btn-secondary my-5">Suchen</button>
 					</form>
 				<div style="overflow-y:auto;overflow-x:auto">
 				  <table class="table">
@@ -185,7 +185,7 @@ function load_user()
 						    <label for="file" class="form-label">Datei wählen:</label>
 						    <input type="file" class="form-control" id="file" name="file" required accept=".gcode">
 						</div>
-						<button type="submit" class="btn btn-dark">Upload</button>	<br>
+						<button type="submit" class="btn btn-secondary">Upload</button>	<br>
 
 					</form>
 				</div>
