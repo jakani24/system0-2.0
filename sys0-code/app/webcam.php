@@ -7,6 +7,9 @@
 	?>
 	<head>
 		<title>Webcam</title>
+		<?php
+			include "../assets/components.php";
+		?>
 	</head>
 	<body>
 		<!-- Display the first image -->
