@@ -360,9 +360,6 @@ function updatePrinterData(data) {
                                 </div>
                                 <div class="card-body">
                                         <iframe height="230px" scrolling="no" width="100%" src="/app/webcam.php?printer_id=${printer.printer_id}&username=<?php echo($username); ?>&url=${printer.url}"></iframe>
-                                        <div class="progress">
-                                                <div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100">${printer.progress}%</div>
-                                        </div>
                                         <table class="table table-borderless">
                                                 <thead>
                                                         <tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
@@ -379,9 +376,6 @@ function updatePrinterData(data) {
                                 </div>
                                 <div class="card-body">
                                         <iframe height="230px" scrolling="no" width="100%" src="/app/webcam.php?printer_id=${printer.printer_id}&username=<?php echo($username); ?>&url=${printer.url}"></iframe>
-                                        <div class="progress">
-                                                <div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100">${printer.progress}%</div>
-                                        </div>
                                         <table class="table table-borderless">
                                                 <thead>
                                                         <tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
