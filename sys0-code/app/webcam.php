@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-bs-theme="dark">
 	<?php
 		$username = htmlspecialchars($_GET["username"]);
 		$printer_url = $_GET["url"];
