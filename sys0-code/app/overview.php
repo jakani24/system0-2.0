@@ -464,7 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			echo("</script>");
 		}
 	?>
-
 <div id="footer"></div>
 </body>
 </html>

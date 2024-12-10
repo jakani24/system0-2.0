@@ -321,6 +321,5 @@ echo('<input class="form-check-input" type="checkbox" id="notification_telegram"
 
 	</div>
 </div>
-
 </body>
 </html>

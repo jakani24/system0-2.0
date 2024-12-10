@@ -322,7 +322,7 @@ EOF;
 
  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
 		<?php include "../assets/components.php";?>
@@ -375,7 +375,7 @@ EOF;
 								<input type="checkbox" class="form-check-input" id="keepmeloggedin" name="keepmeloggedin" value="keepmeloggedin">
 								<label class="form-check-label" for="keepmeloggedin">Angemeldet bleiben</label>
 							</div>
-							<button type="submit" name="submit" class="btn btn-dark">Login</button>
+							<button type="submit" name="submit" class="btn btn-secondary">Login</button>
 						</form>
 						<div class="text-center mt-3">
 							<button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#noaccount" id="lnk_1">Noch kein Account? Erstelle einen!</button>
@@ -438,7 +438,7 @@ EOF;
 						<!--<label class="form-check-label" for="keepmeloggedin">Login speichern</label>-->
 					</div>
         			<!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
-					<button type="submit" name="submit" class="btn btn-dark">Account erstellen</button>
+					<button type="submit" name="submit" class="btn btn-secondary">Account erstellen</button>
 					<div class="text-center mt-3">
 						<p class="mt-3">Durch erstellen des Accounts stimmst du unseren <a href="/app/privacy-policy.php">Datenschutzrichtlinien</a> zu</p>
 					</div>
@@ -463,7 +463,7 @@ EOF;
 					  	</div>
 				</div>
 				<div class="modal-footer">
-					<button type="submit" name="submit" class="btn btn-dark">Passwort zurücksetzlink senden</button>
+					<button type="submit" name="submit" class="btn btn-secondary">Passwort zurücksetzlink senden</button>
 				</div>
 				  </div>
 				</form>
