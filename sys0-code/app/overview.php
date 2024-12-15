@@ -119,6 +119,8 @@
 	        });
 	}
 	load_user();
+	//check queue
+	fetch("/api/async_queue_check.php");
 </script>
 <style>
     .description {
