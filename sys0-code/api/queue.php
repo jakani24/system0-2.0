@@ -58,6 +58,7 @@
 				}
 				else
 				{
+					echo("failed sending file to printer!");
 				}
 			}
 		}
