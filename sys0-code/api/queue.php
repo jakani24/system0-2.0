@@ -51,13 +51,13 @@ function test_queue($link) // Function to check if any printer is free and proce
                     $stmt_delete_queue = mysqli_prepare($link, $sql_delete_queue);
                     mysqli_stmt_execute($stmt_delete_queue);
                 } else {
-                    echo "Failed sending file to printer for queue ID $qid!";
+                    //echo "Failed sending file to printer for queue ID $qid!<br>";
                 }
             } else {
-                echo "No free printer available for queue ID $qid!";
+                //echo "No free printer available for queue ID $qid!<br>";
             }
         } else {
-            echo "No printers available for queue ID $qid!";
+            //echo "No printers available for queue ID $qid!<br>";
         }
     }
 }
