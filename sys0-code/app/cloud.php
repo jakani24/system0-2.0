@@ -58,13 +58,18 @@ function load_user()
 	}
 	if(isset($_GET["delete"])){
 		$path="/var/www/html/user_files/$username/".str_replace("..","",htmlspecialchars($_GET["delete"]));
-		unlink($path);
-
+		if(unlink($path))
+			$success="Datei wurde gelöscht!";
+		else
+			$err="Datei konnte nicht gelöscht werden!";
 	}
 	if(isset($_GET["public"])){
 		$path="/var/www/html/user_files/$username/".str_replace("..","",htmlspecialchars($_GET["public"]));
 		$public_path="/var/www/html/user_files/public/".str_replace("..","",htmlspecialchars($_GET["public"]));
-		copy($path,$public_path);
+		if(copy($path,$public_path))
+			$success="Datei wurde veröffentlicht";
+		else
+			$err="Datei konnte nicht veröffentlicht werden.";
 	}
 	if(!empty($_FILES['file']))
 	{
@@ -77,16 +82,16 @@ function load_user()
 		$path = $path . $filename;
 		if(!in_array($filetype,$ok_ft))
 		{
-			$file_upload_err="Dieser Dateityp wird nicht unterstüzt.";
+			$err="Dieser Dateityp wird nicht unterstüzt.";
 		}
 		else
 		{
 			if(move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
-				$file_upload_err="ok";
+				$success="Datei wurde hochgeladen.";
 			}
 			else
 			{
-				$file_upload_err="Ein Fehler beim Uploaden der Datei ist aufgetreten! Versuche es erneut!";
+				$err="Ein Fehler beim Uploaden der Datei ist aufgetreten! Versuche es erneut!";
 			}
 		}
 		unset($_FILES['file']);
@@ -101,13 +106,6 @@ function load_user()
 <body>
 	<div class="container mt-4" style="height: auto;min-height:100vh">
 		<div class="row justify-content-center">
-			<!--<div style="width: 90vh">-->
-				<?php
-					if(!empty($file_upload_err)&&$file_upload_err!="nan"&&$file_upload_err!="ok")
-						echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>$file_upload_err</div></center>");	
-					else if($file_upload_err!="nan")
-						echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wurde hochgeladen</div></center>");
-				?>
 			      <h1>Eigene Dateien</h1>
 				<div class="container">
 					<button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#upoload_file" id="lnk_1">Datei Hochladen</button>
@@ -115,6 +113,12 @@ function load_user()
 						<input type="text" name="search" placeholder="Suchbegriff">
 						<button type="submit" class="btn btn-secondary my-5">Suchen</button>
 					</form>
+				<?php
+					if(!empty($success))
+						echo("<center><div class='alert alert-success' role='alert'>$success</div></center>");
+					if(!empty($err))
+                                                echo("<center><div class='alert alert-danger' role='alert'>$err</div></center>");
+				?>
 				<div style="overflow-y:auto;overflow-x:auto">
 				  <table class="table">
 				    <thead>
@@ -129,11 +133,11 @@ function load_user()
 				    </thead>
 				    <tbody>
 				      <?php
-				      $directory = "/var/www/html/user_files/$username/"; // Replace with the actual path to your directory
+				      $directory = "/var/www/html/user_files/$username/";
 
 				      // Check if the directory exists
 				      if (is_dir($directory)) {
-					  $files = glob($directory . '/*.gcode');
+					  $files = glob($directory . '/*.gcode'); //*/
 
 
 					  // Iterate through the files and display them in the table
