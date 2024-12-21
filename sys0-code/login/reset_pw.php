@@ -12,7 +12,7 @@ $old_passwort_err="";
 $username=$_SESSION["verify"];
 echo("<div id='content'></div>");
 if($_GET["token"]!=$_SESSION["pw_reset_token"]){
-	$login_err = "Dein Link ist entweder abgelaufen oder ungültig. Erzeuge einen neuen, in dem du auf <a href='/app/login.php?resend_pw_reset'>diesen Link</a> klickst.";
+	$login_err = "Dein Link ist entweder abgelaufen oder ungültig. Erzeuge einen neuen, in dem du auf <a href='/login/login.php?resend_pw_reset'>diesen Link</a> klickst.";
 	echo '<div class="alert alert-danger">' . $login_err . '</div>';
 	
 	//die();
