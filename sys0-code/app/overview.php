@@ -252,7 +252,9 @@ function updatePrinterData(data) {
 		printerStatus = 'Bereit';
 	}else if(printer.view==4){
 		printerStatus = 'Problem / Nicht betriebsbereit';
-	}
+	}else if(printer.view==4){
+                printerStatus = 'Von anderer Quelle aus gestartet';
+        }
 
         if(printer.view==0 || printer.view==2){
 		if(own_id==printer.userid || cancel_all=="1"){
@@ -382,6 +384,55 @@ function updatePrinterData(data) {
                                         </table>
                                 </div>
                         `;
+	}else if(printer.view==5){
+		if(cancel_all=="1"){
+                        printerCard.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">Drucker ${printer.printer_id}</h5>
+                            </div>
+                            <div class="card-body">
+                                <iframe height="230px" scrolling="no" width="100%" src="/app/webcam.php?printer_id=${printer.printer_id}&username=<?php echo($username); ?>&url=${printer.url}"></iframe>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100">${printer.progress}%</div>
+                                </div>
+                                <table class="table table-borderless">
+                                    <thead>
+                                        <tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
+                                        <tr><td>Genutzt von</td><td>Externer Nutzer</td></tr>
+                                        <tr><td>Filamentfarbe</td><td>${printer.filament_color}</td></tr>
+                                        <tr><td>Erwartete Druckzeit</td><td>${printer.print_time_total}</td></tr>
+                                        <tr><td>Verbleibende Druckzeit</td><td>${printer.print_time_left}</td></tr>
+                                        <tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
+                                        <tr><td>Datei</td><td><div class='hover-element'>${printer.file}<div class='description'>${printer.full_file}</div></div></td></tr>
+                                    </thead>
+                                        <tr><td><a class='btn btn-success' href='overview.php?free=${printer.printer_id}&rid=<?php echo($_SESSION["rid"]); ?>'>Freigeben</a></td></tr>
+                                </table>
+                            </div>
+                        `;
+                }else{
+                        printerCard.innerHTML = `
+                                <div class="card-body">
+                                        <h5 class="card-title">Drucker ${printer.printer_id}</h5>
+                                </div>
+                                <div class="card-body">
+                                        <iframe height="230px" scrolling="no" width="100%" src="/app/webcam.php?printer_id=${printer.printer_id}&username=<?php echo($username); ?>&url=${printer.url}"></iframe>
+                                        <div class="progress">
+                                                <div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100">${printer.progress}%</div>
+                                        </div>
+                                        <table class="table table-borderless">
+                                                <thead>
+                                                        <tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
+                                                        <tr><td>Genutzt von</td><td>Externer Nutzer</td></tr>
+                                                        <tr><td>Filamentfarbe</td><td>${printer.filament_color}</td></tr>
+                                                        <tr><td>Erwartete Druckzeit</td><td>${printer.print_time_total}</td></tr>
+                                                        <tr><td>Verbleibende Druckzeit</td><td>${printer.print_time_left}</td></tr>
+                                                        <tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
+                                                        <tr><td>Datei</td><td><div class='hover-element'>${printer.file}<div class='description'>${printer.full_file}</div></div></td></tr>
+                                                </thead>
+                                        </table>
+                                </div>
+                        `;
+                }
 	}
 
         col.appendChild(printerCard);
@@ -403,7 +454,9 @@ function getColorByStatus(status) {
         case 3:
             return 'green';
 	case 4:
-		return 'red';
+	    return 'red';
+	case 5:
+	    return 'orange';
     }
 }
 

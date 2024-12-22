@@ -98,9 +98,11 @@ while (mysqli_stmt_fetch($stmt)) {
         	$printer["print_time_total"] = seconds_to_time(intval($json["job"]["estimatedPrintTime"]));
         	$printer["print_time_left"] = seconds_to_time(intval($json["progress"]["printTimeLeft"]));
         	$printer["print_time"] = seconds_to_time(intval($json["progress"]["printTime"]));
-		$printer["view"]=0;
+		$printer["view"]=5;
 		//insert into db that this one is printing
 		$sql="UPDATE printer SET system_status=99 WHERE id = $printer_id";
+		$stmt = mysqli_prepare($link, $sql);
+		mysqli_stmt_execute($stmt);
 	}else{
 		$printer["print_status"]="Bereit";
         	$printer["view"]=3;
