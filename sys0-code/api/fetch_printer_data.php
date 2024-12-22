@@ -101,8 +101,9 @@ while (mysqli_stmt_fetch($stmt)) {
 		$printer["view"]=5;
 		//insert into db that this one is printing
 		$sql="UPDATE printer SET system_status=99 WHERE id = $printer_id";
-		$stmt = mysqli_prepare($link, $sql);
-		mysqli_stmt_execute($stmt);
+		$stmt2 = mysqli_prepare($link, $sql);
+		mysqli_stmt_execute($stmt2);
+		mysqli_stmt_close($stmt2);
 	}else{
 		$printer["print_status"]="Bereit";
         	$printer["view"]=3;
