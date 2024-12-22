@@ -8,7 +8,7 @@
 	<head>
 		<title>Webcam</title>
 		<?php
-			include "../assets/components.php";
+			include "../assets/webcam_components.php";
 		?>
 	</head>
 	<body>
