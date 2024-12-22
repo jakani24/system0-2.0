@@ -91,7 +91,7 @@ while (mysqli_stmt_fetch($stmt)) {
 	$fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
         $json = json_decode($fg, true);
 	if($json['state']=="Printing" or $json['state']=="Printing from SD" or $system_status==99){
-		$printer["printer_status"]="Von anderer Quelle aus gestartet.";
+		$printer["print_status"]="Von anderer Quelle aus gestartet.";
 		$printer["progress"] = (int) $json['progress']['completion'];
         	$printer["file"] = short_path($json["job"]["file"]["name"], 10, 10);
         	$printer["full_file"]=$json["job"]["file"]["name"];
