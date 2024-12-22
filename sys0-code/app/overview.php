@@ -252,7 +252,7 @@ function updatePrinterData(data) {
 		printerStatus = 'Bereit';
 	}else if(printer.view==4){
 		printerStatus = 'Problem / Nicht betriebsbereit';
-	}else if(printer.view==4){
+	}else if(printer.view==5){
                 printerStatus = 'Von anderer Quelle aus gestartet';
         }
 
