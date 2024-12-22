@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Europe/Zurich');
 function extract_param($gcode) {
     // Match the pattern S followed by digits, capturing the digits
     $matches = [];
@@ -54,44 +55,147 @@ function find_print_time($file) {
     return $time;
 }
 
-function is_time_between($startTime, $endTime, $checkTime) {
-    // Convert times to timestamps
-    $startTimestamp = strtotime($startTime);
-    $endTimestamp = strtotime($endTime);
-    $checkTimestamp = strtotime($checkTime);
-    
-    // If end time is less than start time, it means the range crosses midnight
-    if ($endTimestamp < $startTimestamp) {
-        // Check if the time is between start time and midnight or between midnight and end time
-        return ($checkTimestamp >= $startTimestamp || $checkTimestamp <= $endTimestamp);
-    } else {
-        // Normal case: check if the time is between start and end time
-        return ($checkTimestamp >= $startTimestamp && $checkTimestamp <= $endTimestamp);
+function check_reservation_conflict($link, $class) {
+    $reservation_conflict = false;
+    $today = date("Y-m-d");
+    $time_now = date("H:i");
+    $for_class = [];
+
+    // Query for reservations that start today or extend into today
+    $sql = "
+        SELECT day, time_from, time_to, for_class 
+        FROM reservations 
+        WHERE day <= '$today' AND 
+              (day = '$today' AND time_from <= '$time_now' OR day < '$today');
+    ";
+    $stmt = $link->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        // Calculate the actual end time of the reservation
+        $reservation_end = strtotime($row["day"] . " " . $row["time_to"]);
+        $current_time = strtotime("$today $time_now");
+
+        if ($current_time <= $reservation_end) {
+            $reservation_conflict = true;
+            $for_class[] = $row["for_class"];
+        }
     }
+
+    // Default value for for_class if no conflicts are found
+    if (empty($for_class)) {
+        $for_class[] = 0;
+    }
+
+    // Determine the appropriate response based on the conflict status
+    $response = ['conflict' => $reservation_conflict, 'block' => false, 'message' => ''];
+
+    if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
+        $response['block'] = true;
+        $response['message'] = "
+            <center>
+                <div style='width:50%' class='alert alert-danger' role='alert'>
+                    Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!
+                </div>
+            </center>";
+    } elseif ($class == 0 && $reservation_conflict) {
+        $response['message'] = "
+            <center>
+                <div style='width:50%' class='alert alert-danger' role='alert'>
+                    Die Drucker sind zurzeit reserviert!<br>
+                    Als Lehrperson können Sie zwar jetzt trotzdem drucken, sollten es aber nur tun, 
+                    wenn Sie sicher sind, dass nicht gerade eine andere Lehrperson mit einer Klasse drucken will!
+                </div>
+            </center>";
+    }
+
+    return $response;
 }
 
-function time_to_seconds($print_time) {
-    $seconds = 0;
+function check_print_reservation_conflict($link, $class, $path) {
+    $reservation_conflict = false;
+    $for_class = [];
+    $today = date("Y-m-d");
+    $time_now = date("H:i");
 
-    if (preg_match('/(\d+)h/', $print_time, $matches)) {
-        $seconds += $matches[1] * 3600; // hours to seconds
-    }
-    if (preg_match('/(\d+)m/', $print_time, $matches)) {
-        $seconds += $matches[1] * 60; // minutes to seconds
-    }
-    if (preg_match('/(\d+)s/', $print_time, $matches)) {
-        $seconds += $matches[1]; // seconds
+    // Calculate the end time of the print
+    $print_time = find_print_time($path); // Assume this function is already defined
+    preg_match('/(\d+)h/', $print_time, $hours_match);
+    preg_match('/(\d+)m/', $print_time, $minutes_match);
+    $hours = isset($hours_match[1]) ? (int)$hours_match[1] : 0;
+    $minutes = isset($minutes_match[1]) ? (int)$minutes_match[1] : 0;
+	//echo("uses ".$minutes." Minutes and ".$hours." hours");
+    $start_time = DateTime::createFromFormat('H:i', $time_now);
+    $end_time = clone $start_time;
+    $end_time->modify("+{$hours} hour");
+    $end_time->modify("+{$minutes} minutes");
+
+    // Query to get all relevant reservations (today and future overlaps)
+    $sql = "
+        SELECT day, time_from, time_to, for_class 
+        FROM reservations 
+        WHERE day >= '$today';
+    ";
+    $stmt = $link->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Check for conflicts with reservations
+    while ($row = $result->fetch_assoc()) {
+        $reservation_start = DateTime::createFromFormat('Y-m-d H:i', $row["day"] . ' ' . $row["time_from"]);
+        $reservation_end = DateTime::createFromFormat('Y-m-d H:i', $row["day"] . ' ' . $row["time_to"]);
+
+        // Adjust reservation end time for multi-day overlaps
+        if ($reservation_end < $reservation_start) {
+            $reservation_end->modify('+1 day');
+        }
+
+        // Check if the print overlaps with any reservation period
+        if ($start_time < $reservation_end && $end_time > $reservation_start) {
+            $reservation_conflict = true;
+            $for_class[] = $row["for_class"];
+        }
     }
 
-    return $seconds;
+    // Default value for for_class if no conflicts are found
+    if (empty($for_class)) {
+        $for_class[] = 0;
+    }
+
+    // Build response based on conflict and user access
+    $response = ['conflict' => $reservation_conflict, 'block' => false, 'message' => ''];
+
+    if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
+        $response['block'] = true;
+        $response['message'] = "
+            <center>
+                <div style='width:50%' class='alert alert-danger' role='alert'>
+                    Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!
+                </div>
+            </center>";
+    } elseif ($class == 0 && $reservation_conflict) {
+        $response['message'] = "
+            <center>
+                <div style='width:50%' class='alert alert-danger' role='alert'>
+                    Die Drucker sind zurzeit reserviert!<br>
+                    Als Lehrperson können Sie zwar jetzt trotzdem drucken, sollten es aber nur tun, 
+                    wenn Sie sicher sind, dass nicht gerade eine andere Lehrperson mit einer Klasse drucken will!
+                </div>
+            </center>";
+    }
+
+    return $response;
 }
-
 ?>
 <!DOCTYPE html>
 <html data-bs-theme="dark">
 	<?php
 	// Initialize the session
 	$warning=false;
+	//error / success messages are stored here and then shown in the modal
+	$global_err="";
+	$global_success="";
 	session_start();
 	include "../config/config.php";
 	require_once "../log/log.php";
@@ -128,20 +232,17 @@ function time_to_seconds($print_time) {
 	?>
 
 	<?php $userid=$_SESSION["id"]; ?>
-	<?php echo(" <body style='background-color:$color'> ");?>
+	<body>
 	<div id="content"></div>
 
 	<head>
 	  <title>Datei drucken</title>
-	
 	</head>
-
 	<body>
 		<br><br>
 		<?php
 		if(isset($_POST["printer"]))
 		{
-			
 			$status=0;
 			$free=0;
 			$url="";
@@ -164,6 +265,7 @@ function time_to_seconds($print_time) {
 					if(!in_array($filetype,$ok_ft))
 					{
 						echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Dieser Dateityp wird nicht unterstüzt.</div></center>");
+						$global_err="Dieser Dateityp wird nicht unterstüzt.";
 						sys0_log("Could not upload file for ".$_SESSION["username"]." because of unknown file extension",$_SESSION["username"],"PRINT::UPLOAD::FILE::FAILED");//notes,username,type
 					}
 					else
@@ -175,6 +277,7 @@ function time_to_seconds($print_time) {
 							mysqli_stmt_execute($stmt);
 
 							echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen und an die Warteschlange gesendet</div></center>");
+							$global_success="Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen und an die Warteschlange gesendet";
 							sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to the queue",$_SESSION["username"],"PRINT::UPLOAD::QUEUE");//notes,username,type
 						}   
 						else
@@ -196,7 +299,7 @@ function time_to_seconds($print_time) {
 					mysqli_stmt_execute($stmt);
 
 
-					echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen und an die Warteschlange gesendet</div></center>");
+					echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei ".  basename( $_FILES['file_upload']['name']). " wurde an die Warteschlange gesendet</div></center>");
 					sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to the queue",$_SESSION["username"],"PRINT::UPLOAD::QUEUE");
 
 				}
@@ -212,7 +315,6 @@ function time_to_seconds($print_time) {
 				mysqli_stmt_fetch($stmt);	
 				if($free!=1 or $status!=0)
 				{
-
 					echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Der Drucker ist zur Zeit nicht verfügbar. Warte einen Moment oder versuche es mit einem anderen Drucker erneut.</div></center>");
 					sys0_log("Could not start job for ".$_SESSION["username"]." with file ".basename($path)."",$_SESSION["username"],"PRINT::JOB::START::FAILED");//notes,username,type
 					exit;
@@ -246,59 +348,16 @@ function time_to_seconds($print_time) {
 						if(true){
 							mysqli_stmt_close($stmt);
 							if(move_uploaded_file($_FILES['file_upload']['tmp_name'], $path)) {
-								echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Erfolg! Die Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen.</div></center>");
-								echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
-								$print_time=find_print_time($path);
-								//check if the printers are reserved at the time when this print finishes
-								date_default_timezone_set('Europe/Zurich');
-								$reservation_conflict = false;
-								$today = date("Y-m-d");
-								$time_now = date("H:i");
-
-								preg_match('/(\d+)h/', $print_time, $hours_match);
-								preg_match('/(\d+)m/', $print_time, $minutes_match);
-								$hours = isset($hours_match[1]) ? (int)$hours_match[1] : 0;
-								$minutes = isset($minutes_match[1]) ? (int)$minutes_match[1] : 0;
-
-								// Convert $now into a DateTime object and add hours and minutes
-								$time = DateTime::createFromFormat('H:i', $time_now);
-								$time->modify("+{$hours} hour");
-								$time->modify("+{$minutes} minutes");
-
-								// Format $time back into a string
-								$time_now = $time->format('H:i');
-
-								// Query to get reservations for the current day
-								$sql = "SELECT time_from, time_to, for_class FROM reservations WHERE day='$today';";
-								$stmt = $link->prepare($sql);
-								$stmt->execute();
-								$result = $stmt->get_result();
-
-								while ($row = $result->fetch_assoc()) {
-								    // Check for overlap with the entire print time period
-								    if (is_time_between($row["time_from"], $row["time_to"], $time_now)) {
-        								$reservation_conflict = true;
-        								$for_class[] = $row["for_class"];
-    								    }
-								}
-
-								// Ensure $for_class is set if no conflicts were found
-								if (!isset($for_class)) {
-								    $for_class[] = 0;
-								}
-
-								// Display conflict message if necessary
-								if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
-								    $block = true;
-								} else {
-								    $block = false;
-								}
+								//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Erfolg! Die Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen.</div></center>");
+								//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
+								$response=check_print_reservation_conflict($link,$_SESSION["class_id"],$path);
+								$block=$response['block'];
 								if($block==false){
 								 if(check_file($path) or isset($_POST["ignore_unsafe"])){
 									exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
 									//file is on printer and ready to be printed
 									$userid=$_SESSION["id"];
-									echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
+								//	echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
 									sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to printer ".$_POST["printer"]."",$_SESSION["username"],"PRINT::UPLOAD::PRINTER");//notes,username,type
 									$fg=file_get_contents("/var/www/html/user_files/$username/json.json");
 									$json=json_decode($fg,true);
@@ -317,6 +376,7 @@ function time_to_seconds($print_time) {
 										$stmt = mysqli_prepare($link, $sql);
 										mysqli_stmt_execute($stmt);	
 										mysqli_stmt_close($stmt);	
+										echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und der Auftrag wurde gestartet.</div></center>");
 									}
 								 }else{
 									$warning=true;
@@ -353,57 +413,15 @@ function time_to_seconds($print_time) {
 					if(true){
 					mysqli_stmt_close($stmt);
 
-							echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
-							$print_time=find_print_time($path);
-							date_default_timezone_set('Europe/Zurich');
-							$reservation_conflict = false;
-							$today = date("Y-m-d");
-							$time_now = date("H:i");
-
-							preg_match('/(\d+)h/', $print_time, $hours_match);
-							preg_match('/(\d+)m/', $print_time, $minutes_match);
-							$hours = isset($hours_match[1]) ? (int)$hours_match[1] : 0;
-							$minutes = isset($minutes_match[1]) ? (int)$minutes_match[1] : 0;
-
-							// Convert $now into a DateTime object and add hours and minutes
-							$time = DateTime::createFromFormat('H:i', $time_now);
-							$time->modify("+{$hours} hour");
-							$time->modify("+{$minutes} minutes");
-
-							// Format $time back into a string
-							$time_now = $time->format('H:i');
-
-							// Query to get reservations for the current day
-							$sql = "SELECT time_from, time_to, for_class FROM reservations WHERE day='$today';";
-							$stmt = $link->prepare($sql);
-							$stmt->execute();
-							$result = $stmt->get_result();
-
-							while ($row = $result->fetch_assoc()) {
-							    // Check for overlap with the entire print time period
-							    if (is_time_between($row["time_from"], $row["time_to"], $time_now)) {
-        							$reservation_conflict = true;
-        							$for_class[] = $row["for_class"];
-    							    }
-							}
-
-							// Ensure $for_class is set if no conflicts were found
-							if (!isset($for_class)) {
-							    $for_class[] = 0;
-							}
-
-							// Display conflict message if necessary
-							if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
-							    $block = true;
-							} else {
-							    $block = false;
-							}
+							//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
+							$response=check_print_reservation_conflict($link,$_SESSION["class_id"],$path);
+                                                        $block=$response['block'];
 							if($block==false){
 							 if(check_file($path)  or isset($_POST["ignore_unsafe"])){
 								exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
 								//file is on printer and ready to be printed
 								$userid=$_SESSION["id"];
-								echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
+								//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
 								sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to printer ".$_POST["printer"]."",$_SESSION["username"],"PRINT::UPLOAD::PRINTER");//notes,username,type
 								$fg=file_get_contents("/var/www/html/user_files/$username/json.json");
 								$json=json_decode($fg,true);
@@ -415,13 +433,14 @@ function time_to_seconds($print_time) {
 								else
 								{
 									$sql="update printer set free=0, printing=1,mail_sent=0, used_by_userid=$userid where id=$printer_id";
-									$stmt = mysqli_prepare($link, $sql);					
+									$stmt = mysqli_prepare($link, $sql);
 									mysqli_stmt_execute($stmt);
 									//delete printer key:
 									$sql="DELETE from print_key where print_key='$print_key'";
 									$stmt = mysqli_prepare($link, $sql);
-									mysqli_stmt_execute($stmt);	
-									mysqli_stmt_close($stmt);	
+									mysqli_stmt_execute($stmt);
+									mysqli_stmt_close($stmt);
+									echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
 								}
 							 }else{
 								$warning=true;
@@ -434,45 +453,19 @@ function time_to_seconds($print_time) {
 					else{
 						echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Der Druckschlüssel ist nicht gültig. Evtl. wurde er bereits benutzt. Versuche es erneut! </div></center>");
 					}
-				}	
+				}
 			}
 		}
-	
+
 	?>
-	
+
 			<div class="text-center mt-5" style="min-height: 95vh">
 				<h1>Datei drucken</h1>
 				<!-- Reservations notice -->
 				<?php
-					date_default_timezone_set('Europe/Zurich');
-					$reservation_conflict=false;
-					$today=date("Y-m-d");
-					$sql="select time_from, time_to, for_class from reservations where day='$today';";
-					$stmt = $link->prepare($sql);
-        				$stmt->execute();
-        				$result = $stmt->get_result();
-        				//$row = $result->fetch_assoc();
-        				$time_now=date("H:i");
-
-        				while ($row = $result->fetch_assoc()) {
-					    if (is_time_between($row["time_from"], $row["time_to"], $time_now)) {
-						$reservation_conflict = true;
-						$for_class[]=$row["for_class"];
-						//break;
-					    }
-					}
-					if(!isset($for_class))
-						$for_class[]=0;
-					if ($reservation_conflict && !in_array($class,$for_class) && $class!=0) {
-					    echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!</div></center>";
-						$block=true;
-					}else if($class==0 && $reservation_conflict){
-						$block=false;
-						echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert!<br>Als Lehrperson können Sie zwar jetzt trozdem drucken, sollten es aber nur tun, wenn Sie sicher sind, dass nicht gerade eine andere Lehrperson mit einer Klasse drucken will!</div></center>";
-					}else{
-						$block=false;
-					}
-
+					$response=check_reservation_conflict($link,$_SESSION["class_id"]);
+					echo($response['message']);
+					$block=$response['block'];
 				?>
 				<div class="container d-flex align-items-center justify-content-center" >
 
@@ -482,7 +475,7 @@ function time_to_seconds($print_time) {
 							echo('<div class="custom-file">');
 
 								echo('<label for="file_upload" class="form-label">Zu druckende Datei</label>');
-								echo('<input type="file" class="form-control" type="file" name="file_upload" required accept=".gcode">  ');
+								echo('<input type="file" class="form-control" type="file" id="file_upload" name="file_upload" required accept=".gcode">  ');
 							echo('</div>');
 						echo('</div>');
 					}
@@ -514,7 +507,7 @@ function time_to_seconds($print_time) {
 							if(isset($_GET["preselect"])){
 								$preselect=$_GET["preselect"];
 							}else{
-								$preselect=1;							
+								$preselect=1;
 							}
 							if(!isset($_GET["send_to_queue"])){
 								while($num_of_printers!=0)
@@ -528,7 +521,7 @@ function time_to_seconds($print_time) {
 									mysqli_stmt_store_result($stmt);
 									mysqli_stmt_bind_result($stmt, $id,$color);
 									mysqli_stmt_fetch($stmt);
-									
+
 									$color=intval($color);
 									//get the real color
 									$sql="select name from filament where internal_id=$color";
@@ -537,7 +530,7 @@ function time_to_seconds($print_time) {
 						                        mysqli_stmt_store_result($stmt);
 						                        mysqli_stmt_bind_result($stmt,$color);
 						                        mysqli_stmt_fetch($stmt);
-		                                        
+
 									if($id!=0 && $id!=$last_id)
 									{
 										if($id==$preselect)
@@ -563,8 +556,7 @@ function time_to_seconds($print_time) {
 						echo('<div class="form-group">');
 							echo('<label class="my-3" for="printer">Auf diesem Drucker wird deine Datei gedruckt, sobald er frei ist.</label>');
 							echo('<select class="form-control selector" name="queue_printer" required>');
-								
-								
+
 								//get number of printers
 								$num_of_printers=0;
 								$sql="select count(*) from printer where system_status=0";
@@ -658,17 +650,60 @@ function time_to_seconds($print_time) {
 			</div>
 		</div>
 		<br>
+
+<div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="warningModalLabel">Achtung!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="warningModalMessage">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 	<div id="footer"></div>
 <script>
-	function show_loader(){
-		var spinner=document.getElementById("spinner");
-		spinner.style.display="block";
-		var spinner=document.getElementById("spinner2");
-		spinner.style.display="block";
-		var spinner=document.getElementById("button");
-		spinner.style.display="none";
-
+function show_loader() {
+        // Get the file input element
+        const fileInput = document.getElementById("file_upload");
+        // Check if a file is selected
+        if(fileInput){
+		if (!fileInput.files || fileInput.files.length === 0) {
+        	    // Prevent form submission and show modal
+        	    showWarningModal("Keine Datei ausgewählt. Bitte wähle eine Datei aus!");
+        	    return false; // Prevent form submission
+        	}
 	}
+
+        // Start the loader spinner if a file is selected
+        document.getElementById("spinner").style.display = "block";
+        document.getElementById("spinner2").style.display = "block";
+        document.getElementById("button").style.display = "none";
+
+        return true; // Allow form submission
+}
+function showWarningModal(message) {
+    // Get the modal and message elements
+    const modal = document.getElementById("warningModal");
+    const modalMessage = document.getElementById("warningModalMessage");
+
+    // Check if the modal and message elements exist
+    if (modal && modalMessage) {
+        modalMessage.textContent = message; // Set the message text
+        const bootstrapModal = new bootstrap.Modal(modal); // Initialize the modal
+        bootstrapModal.show(); // Show the modal using Bootstrap's method
+    } else {
+        console.warn("Modal or modal message element not found.");
+    }
+}
+
 </script>
 </body>
 

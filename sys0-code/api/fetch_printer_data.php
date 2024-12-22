@@ -83,9 +83,28 @@ while (mysqli_stmt_fetch($stmt)) {
 	$printer["print_status"]="Abgebrochen";
 	$printer["full_file"]=$json["job"]["file"]["name"];
 	$printer["view"]=2;
-    }else if($system_status==0){
+    }/*else if($system_status==0){
 	$printer["print_status"]="Bereit";
 	$printer["view"]=3;
+    }*/else if(($is_free == 1 && $system_status==0) or $system_status==99){ //check if a print has been started from another location
+    	exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
+	$fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
+        $json = json_decode($fg, true);
+	if($json['state']=="Printing" or $system_status==99){
+		$printer["printer_status"]="Von anderer Quelle aus gestartet.";
+		$printer["progress"] = (int) $json['progress']['completion'];
+        	$printer["file"] = short_path($json["job"]["file"]["name"], 10, 10);
+        	$printer["full_file"]=$json["job"]["file"]["name"];
+        	$printer["print_time_total"] = seconds_to_time(intval($json["job"]["estimatedPrintTime"]));
+        	$printer["print_time_left"] = seconds_to_time(intval($json["progress"]["printTimeLeft"]));
+        	$printer["print_time"] = seconds_to_time(intval($json["progress"]["printTime"]));
+		$printer["view"]=0;
+		//insert into db that this one is printing
+		$sql="UPDATE printer SET system_status=99 WHERE id = $printer_id";
+	}else{
+		$printer["print_status"]="Bereit";
+        	$printer["view"]=3;
+	}
     }else{
 	$printer["print_status"]="Problem / Nicht betriebsbereit";
 	$printer["view"]=4;
