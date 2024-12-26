@@ -375,7 +375,12 @@ EOF;
 								<input type="checkbox" class="form-check-input" id="keepmeloggedin" name="keepmeloggedin" value="keepmeloggedin">
 								<label class="form-check-label" for="keepmeloggedin">Angemeldet bleiben</label>
 							</div>
-							<button type="submit" name="submit" class="btn btn-secondary">Login</button>
+							<div class="d-flex align-items-center">
+							    <button type="submit" name="submit" class="btn btn-secondary">Login</button>
+							    <p class="mx-3 mb-0">Oder</p>
+							    <a href="https://jakach.duckdns.org:444/?send_to=https://app.ksw3d.ch/login/oauth.php" class="btn btn-secondary">mit Jakach account einloggen</a>
+							</div>
+
 						</form>
 						<div class="text-center mt-3">
 							<button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#noaccount" id="lnk_1">Noch kein Account? Erstelle einen!</button>

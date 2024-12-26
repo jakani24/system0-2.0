@@ -15,7 +15,7 @@ $new_password_err = $confirm_password_err = "";
 $old_password="";
 $old_passwort_err="";
 // Processing form data when form is submitted
-if($_SERVER["REQUEST_METHOD"] == "POST"){
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["old_password"])){
     $login_err="";
     //first: validate old password
     if(empty(trim($_POST["old_password"]))){
@@ -45,6 +45,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
                                         // Redirect user to welcome page
                                             $auth=true;
+					$change=true;
                                     } else{
                                         // Password is not valid, display a generic error message
                                         $login_err = "Invalid password.";
@@ -61,7 +62,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     }
                 }
     }
-    if($auth===true)
+    if($auth===true && $change===true)
     {
         //end of old_password validation
         // Validate new password
@@ -115,6 +116,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             }
         }
     }
+
+if(isset($_POST["user_token"])){
+	$sql="update users set user_token = ? where id = ?";
+	$stmt = mysqli_prepare($link, $sql);
+	$user_token=$_POST["user_token"];
+	$id=$_SESSION["id"];
+	mysqli_stmt_bind_param($stmt, "si", $user_token, $id);
+	mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
+	$msg="User Token wurde hinzugefügt.";
+}
         // Close connection
         mysqli_close($link);
 ?>
@@ -177,6 +189,21 @@ echo("<div id='content'></div>");?>
 	        if(!empty($login_err)){
 	            echo '<div class="alert alert-danger">' . $login_err . '</div>';
 	        }
+	?>
+	<p>Hier kannst du deinen Jakach-Account verknüpfen, um dich leichter einzuloggen.</p>
+	<p>Du findest dein User-Token in bei deinem Jakach Account (<a href="https://jakach.duckdns.org:444/?send_to=/account/">hier</a>)
+	<div class="m-3">
+            <form action="" method="post">
+              <div class="form-group m-2">
+                <label for="pwd">User Token:</label>
+                <input type="text" class="form-control" id="user_token" name="user_token" required>
+              </div>
+              <button type="submit" name="submit" class="btn btn-dark m-2">Bestätigen</button>
+            </form>
+        </div>
+	<?php
+		if(isset($msg))
+			 echo '<div class="alert alert-success">' . $msg . '</div>';
 	?>
   </div>
 </div>

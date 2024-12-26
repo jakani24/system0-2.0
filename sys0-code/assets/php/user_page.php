@@ -119,7 +119,7 @@
 									</div>
 									
 									<div class="card-body">
-										<h5 class="card-title">Passwort zurücksetzen</h5>
+										<h5 class="card-title">Jakach account verknüpfen / Passwort zurücksetzen</h5>
 										<p class="card-text">Hier kannst du dein Passwort ändern</p>
 										<a href="/login/reset-password.php" class="stretched-link"></a>
 									</div>

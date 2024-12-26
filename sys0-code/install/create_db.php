@@ -19,6 +19,7 @@ $sql = "CREATE TABLE IF NOT EXISTS users (
 	username VARCHAR(255) NOT NULL,
 	password VARCHAR(255),
 	role VARCHAR(255),
+	user_token VARCHAR(128),
 	created_at DATETIME,
 	keepmeloggedin VARCHAR(255),
 	color VARCHAR(50),
