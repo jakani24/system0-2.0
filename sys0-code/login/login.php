@@ -378,7 +378,7 @@ EOF;
 							<div class="d-flex align-items-center">
 							    <button type="submit" name="submit" class="btn btn-secondary">Login</button>
 							    <p class="mx-3 mb-0">Oder</p>
-							    <a href="https://jakach.duckdns.org:444/?send_to=https://app.ksw3d.ch/login/oauth.php" class="btn btn-secondary">mit Jakach account einloggen</a>
+							    <a href="https://jakach-auth.duckdns.org:444/?send_to=https://app.ksw3d.ch/login/oauth.php" class="btn btn-secondary">mit Jakach account einloggen</a>
 							</div>
 
 						</form>
