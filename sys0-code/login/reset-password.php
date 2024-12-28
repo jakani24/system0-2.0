@@ -132,7 +132,7 @@ if(isset($_POST["user_token"])){
 ?>
  
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Passwort zurücksetzen</title>
