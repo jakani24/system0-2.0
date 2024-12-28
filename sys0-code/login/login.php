@@ -397,7 +397,7 @@ EOF;
 							if(isset($_GET["acc_verify_ok"]))
 								echo '<div class="alert alert-success">Email erfolgreich Verifiziert.</div>';
 							if(isset($_GET["mail_sent3"]))
-								echo '<div class="alert alert-danger">Eine Mail mit einem Passwort zurücksetzungslink konnte nich gesendet werden. Bitte melde dich beim Support <a href="mailto:info.jakach@gmail.com">hier.</a></div>';
+								echo '<div class="alert alert-danger">Eine Mail mit einem Passwort zurücksetzungslink konnte nich gesendet werden. Bitte melde dich beim Support <a href="mailto:info@jakach.ch">hier.</a></div>';
 						?>
 					</div>
 				</div>
