@@ -88,9 +88,9 @@ if (isset($data['status'])) {
 		mysqli_stmt_close($stmt);
 		echo("<script>location.href='/app/overview.php';</script>");
 	}else{
-		echo("<div class='alert alert-danger'>Dein System0 Account wurde noch nicht mit deinem Jakach account verknüpft!</div>");
+		echo("<div class='alert alert-danger'>Dein System0 Account wurde noch nicht mit deinem Jakach account verknüpft!<br>Um deinen Jakach account zu verknüpfen, folge bitte <a href='https://github.com/jakani24/system0-2.0/blob/main/connect_jac.pdf'>dieser</a> Anleitung</div>");
 	}
-        
+
         // Return a success response
     } else {
         // Authentication failed
