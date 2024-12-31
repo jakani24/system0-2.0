@@ -191,7 +191,7 @@ echo("<div id='content'></div>");?>
 	        }
 	?>
 	<p>Hier kannst du deinen Jakach-Account verknüpfen, um dich leichter einzuloggen.</p>
-	<p>Du findest dein User-Token in bei deinem Jakach Account (<a href="https://auth.jakach.ch:80/?send_to=/account/">hier</a>)
+	<p>Du findest dein User-Token in bei deinem Jakach Account (<a href="https://auth.jakach.ch/?send_to=/account/">hier</a>)
 	<div class="m-3">
             <form action="" method="post">
               <div class="form-group m-2">

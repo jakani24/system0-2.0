@@ -25,7 +25,7 @@ if($error==="success")
 $auth_token = $_GET["auth"];
 
 // Check the auth token against Jakach login API
-$check_url = "https://auth.jakach.ch:80/api/auth/check_auth_key.php?auth_token=" . $auth_token;
+$check_url = "https://auth.jakach.ch/api/auth/check_auth_key.php?auth_token=" . $auth_token;
 
 // Initialize cURL
 $ch = curl_init();
