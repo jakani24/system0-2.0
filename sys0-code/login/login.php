@@ -46,7 +46,7 @@ curl --request POST \
   --url https://api.sendgrid.com/v3/mail/send \
   --header "Authorization: Bearer $SENDGRID_API_KEY" \
   --header 'Content-Type: application/json' \
-  --data '{"personalizations": [{"to": [{"email": "$username"}]}],"from": {"email": "$sendgrid_email"},"subject": "System0 Account Validation","content": [{"type": "text/html", "value": "Hallo $username<br>Hier ist dein System0 Account verifikations Link. Bitte klicke drauf. Sollte dies nicht funktionieren, kopiere bitte den Link und öffne Ihn in deinem Browser.<br><a href='https://app.ksw3d.ch/login/verify_account.php?token=$token'>https://app.ksw3d.ch/login/verify_account.php?token=$token</a><br>Achtung: der Link funktioniert nur in dem gleichen Browser und Gerät, auf dem du deinen Account erstellt hast.<br><br>Vielen dank für dein Vertrauen in uns!<br>Code Camp 2024<br>"}]}'
+  --data '{"personalizations": [{"to": [{"email": "$username"}]}],"from": {"email": "$sendgrid_email"},"subject": "System0 Account Validation","content": [{"type": "text/html", "value": "Hallo $username<br>Hier ist dein System0 Account verifikations Link. Bitte klicke drauf. Sollte dies nicht funktionieren, kopiere bitte den Link und öffne Ihn in deinem Browser.<br><a href='https://app.ksw3d.ch/login/verify_account.php?token=$token'>https://app.ksw3d.ch/login/verify_account.php?token=$token</a><br>Achtung: der Link funktioniert nur in dem gleichen Browser und Gerät, auf dem du deinen Account erstellt hast.<br><br>Vielen dank für dein Vertrauen in uns!<br><a href=\"https://www.jakach.ch\">Jakach.ch</a><br>"}]}'
 
 EOF;
 				exec($mail);
@@ -271,7 +271,7 @@ curl --request POST \
   --url https://api.sendgrid.com/v3/mail/send \
   --header "Authorization: Bearer $SENDGRID_API_KEY" \
   --header 'Content-Type: application/json' \
-  --data '{"personalizations": [{"to": [{"email": "$username"}]}],"from": {"email": "$sendgrid_email"},"subject": "System0 Account Validation","content": [{"type": "text/html", "value": "Hallo $username<br>Hier ist dein System0 Account verifikations Link. Bitte klicke drauf. Sollte dies nicht funktionieren, kopiere bitte den Link und öffne Ihn in deinem Browser.<br><a href='https://app.ksw3d.ch/login/verify_account.php?token=$token'>https://app.ksw3d.ch/login/verify_account.php?token=$token</a><br>Achtung: der Link funktioniert nur in dem gleichen Browser und Gerät, auf dem du deinen Account erstellt hast.<br><br>Vielen dank für dein Vertrauen in uns!<br>Code Camp 2024<br>"}]}'
+  --data '{"personalizations": [{"to": [{"email": "$username"}]}],"from": {"email": "$sendgrid_email"},"subject": "System0 Account Validation","content": [{"type": "text/html", "value": "Hallo $username<br>Hier ist dein System0 Account verifikations Link. Bitte klicke drauf. Sollte dies nicht funktionieren, kopiere bitte den Link und öffne Ihn in deinem Browser.<br><a href='https://app.ksw3d.ch/login/verify_account.php?token=$token'>https://app.ksw3d.ch/login/verify_account.php?token=$token</a><br>Achtung: der Link funktioniert nur in dem gleichen Browser und Gerät, auf dem du deinen Account erstellt hast.<br><br>Vielen dank für dein Vertrauen in uns!<br><a href=\"https://www.jakach.ch\">Jakach.ch</a><br>"}]}'
 
 EOF;
 
@@ -304,7 +304,7 @@ curl --request POST \
   --url https://api.sendgrid.com/v3/mail/send \
   --header "Authorization: Bearer $SENDGRID_API_KEY" \
   --header 'Content-Type: application/json' \
-  --data '{"personalizations": [{"to": [{"email": "$email"}]}],"from": {"email": "$sendgrid_email"},"subject": "System0 Password reset","content": [{"type": "text/html", "value": "Hallo $email<br>Hier ist dein System0 Passwort Zurücksetzungs Link. Bitte klicke drauf. Sollte dies nicht funktionieren, kopiere bitte den Link und öffne Ihn in deinem Browser.<br><a href='https://app.ksw3d.ch/login/reset_pw.php?token=$token'>https://app.ksw3d.ch/login/reset_pw.php?token=$token</a><br>Achtung: der Link funktioniert nur in dem gleichen Browser und Gerät, auf dem du deinen Account erstellt hast.<br><br>Vielen dank für dein Vertrauen in uns!<br>Code Camp 2024<br>"}]}'
+  --data '{"personalizations": [{"to": [{"email": "$email"}]}],"from": {"email": "$sendgrid_email"},"subject": "System0 Password reset","content": [{"type": "text/html", "value": "Hallo $email<br>Hier ist dein System0 Passwort Zurücksetzungs Link. Bitte klicke drauf. Sollte dies nicht funktionieren, kopiere bitte den Link und öffne Ihn in deinem Browser.<br><a href='https://app.ksw3d.ch/login/reset_pw.php?token=$token'>https://app.ksw3d.ch/login/reset_pw.php?token=$token</a><br>Achtung: der Link funktioniert nur in dem gleichen Browser und Gerät, auf dem du deinen Account erstellt hast.<br><br>Vielen dank für dein Vertrauen in uns!<br><a href=\"https://www.jakach.ch\">Jakach.ch</a><br>"}]}'
 EOF;
 
 	    exec($mail);
