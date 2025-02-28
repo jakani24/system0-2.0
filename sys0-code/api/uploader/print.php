@@ -144,7 +144,7 @@
                                         finish_step(2,progressContent,steps);
                                 }else if(status==1){
 					//reserved and user is student
-					add_error("Die Drucker sind zurzeit reserviert. Bitte versuche es später erneut.");
+					add_error("Die Drucker sind zurzeit reserviert. Bitte versuche es später erneut.", progressContent);
 					cancel_step(2,progressContent,steps);
 					show_close_button();
 					return;
