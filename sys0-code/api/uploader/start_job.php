@@ -10,7 +10,7 @@
         include "../../config/config.php";
 	//if printer is ready, upload to printer, else upload to queue
 	//return 0 if success, else return any int
-	$printer_id=intval($_GET["printer_id"]);
+	$printer_id=intval($_GET["printer"]);
 	//check if printer is ready
 	$sql="select printer_url, free, system_status,apikey,printer_url from printer where id=$printer_id";
 	$stmt = mysqli_prepare($link, $sql);
@@ -22,12 +22,13 @@
 	$result=1;
 	$username=$_SESSION["username"];
 	$userid=$_SESSION["id"];
+
 	if($free==1 && $status==0){
 		//upload to printer
 		exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
 		$fg=file_get_contents("/var/www/html/user_files/$username/json.json");
 		$json=json_decode($fg,true);
-		if($json['effectivePrint']==false or $json["effectiveSelect"]==false)
+		if($json['effectivePrint']!=true or $json["effectiveSelect"]!=true)
 		{
 			$result=1;
 		}
@@ -47,7 +48,7 @@
 		mysqli_stmt_bind_param($stmt, "isi", $userid,$path,$printer_id);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
-		$result=0;
+		$result=2;
 
 	}else{
 		//error

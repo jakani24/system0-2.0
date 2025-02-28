@@ -59,7 +59,7 @@
 						    <option selected value="not_set">Bitte wähle einen Drucker</option>
 						</select>
 					</div>
-					<a style="cursor: pointer" onclick="start_upload(1)" class="btn btn-primary">Drucken</a>
+					<a style="cursor: pointer" onclick="start_upload(1)" class="btn btn-secondary">Drucken</a>
 				</form>
 			</div>
 
@@ -87,7 +87,7 @@
         				    data.forEach(item => {
         				        const option = document.createElement("option");
                 				option.value = item.id;
-						if(item.free==0){
+						if(item.free==1){
                 					option.textContent = `Drucker ${item.id} - ${item.color}`;
                 				}else{
 							option.textContent = `Drucker ${item.id} - ${item.color} - Warteschlange`;
@@ -101,6 +101,7 @@
         			.catch(error => console.error("Error fetching data:", error));
 			});
 			async function start_upload(use_checks){
+				document.getElementById("close_progress_modal2").click();
 				//main function handles the steps from user pressing upload button via checking params to starting job via api
 				//we have a modal that shows progress to the user
 				document.getElementById("close_progress_modal").style.display = "none";
@@ -110,8 +111,7 @@
         			    "Datei auf System0 Hochladen",
         			    "Nach Reservationskonflikten suchen",
         			    "Nach Invaliden Druckeinstellungen suchen",
-        			    "Job an Drucker senden",
-				    "Fertig!"
+        			    "Job an Drucker senden"
 			        ];
 				let progressContent = document.getElementById("progressContent");
 			        progressContent.innerHTML = ""; // Clear previous content
@@ -185,21 +185,27 @@
 				status=await start_job();
 				if(status==0){
 					finish_step(4,progressContent,steps);
-					add_step(5,progressContent,steps);
-					finish_step(5,progressContent,steps);
+					//add_step(5,progressContent,steps);
+					//finish_step(5,progressContent,steps);
 					add_success("Job erfolgreich gestartet",progressContent);
+				}else if(status==2){
+					finish_step(4,progressContent,steps);
+                                        //add_step(5,progressContent,steps);
+                                        //finish_step(5,progressContent,steps);
+                                        add_success("Job erfolgreich an Warteschlange gesendet",progressContent);
 				}else{
 					add_error("Fehler beim starten des Jobs. "+global_error, progressContent);
 					cancel_step(4,progressContent,steps);
 					show_close_button();
 					return;
 				}
+				show_close_button();
 			}
 
 			function add_circumvent_link(progressContent) {
                                     let stepHtml = `
                                         <div>
-						<a onclick="start_upload(0);" target="_blank" class="step-link">Drücke hier, um alle überprüfungen zu umgehen</a>
+						<a onclick="start_upload(0);" style="cursor:pointer" target="_blank" class="step-link">Drücke hier, um alle überprüfungen zu umgehen</a>
                                         </div>
                                         `;
 
@@ -352,7 +358,7 @@
 
 		</script>
 	<!-- progress modal -->
-	<div class="modal fade" id="progressModal" tabindex="1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="progressModalLabel" aria-hidden="false">
+	<div class="modal fade" id="progressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="progressModalLabel" aria-hidden="false">
     		<div class="modal-dialog" role="document">
         		<div class="modal-content">
         		    <div class="modal-header">
