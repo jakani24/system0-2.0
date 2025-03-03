@@ -1,710 +1,385 @@
 <?php
-date_default_timezone_set('Europe/Zurich');
-function extract_param($gcode) {
-    // Match the pattern S followed by digits, capturing the digits
-    $matches = [];
-    $pattern = '/[S|T]([0-9]+)/';
-
-    if (preg_match($pattern, $gcode, $matches)) {
-        return (int)$matches[1]; // Return the first capture group as an integer
-    } else {
-        return false; // No match found
-    }
-}
-
-function check_file($path){//check file for temperature which are to high
-	$file = fopen($path, 'r');
-	$cnt=0;
-	while (!feof($file)&&$cnt!=2) {
-	    $line = fgets($file);
-	    // Extract parameter from lines with specific commands
-	    if (strpos($line, 'M104') !== false || strpos($line, 'M140') !== false) {
-		$cnt++;
-	        $parameter = extract_param($line);
-		if(strpos($line, 'M104') !== false){ //extruder_temp
-			$ex_temp=$parameter;
-		}
-		if(strpos($line, 'M140') !== false){ //bed temp
-			$bed_temp=$parameter;
-		}
-	    }
-	}
-	//echo("bed:$bed_temp;ex:$ex_temp");
-	if($bed_temp>75 or $ex_temp>225){
-		return 0;
-	}else{
-		return 1;
-	}
-}
-
-function find_print_time($file) {
-    $handle = fopen($file, "r");
-    $targetPhrase = "; estimated printing time (normal mode) = ";
-    $time = null;
-
-    while (($line = fgets($handle)) !== false) {
-        if (strpos($line, $targetPhrase) !== false) {
-            // Extract the time after the target phrase
-            $time = trim(str_replace($targetPhrase, "", $line));
-            break; // Stop once the desired line is found
-        }
-    }
-
-    fclose($handle);
-
-    return $time;
-}
-
-function check_reservation_conflict($link, $class) {
-    $reservation_conflict = false;
-    $today = date("Y-m-d");
-    $time_now = date("H:i");
-    $for_class = [];
-
-    // Query for reservations that start today or extend into today
-    $sql = "
-        SELECT day, time_from, time_to, for_class 
-        FROM reservations 
-        WHERE day <= '$today' AND 
-              (day = '$today' AND time_from <= '$time_now' OR day < '$today');
-    ";
-    $stmt = $link->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    while ($row = $result->fetch_assoc()) {
-        // Calculate the actual end time of the reservation
-        $reservation_end = strtotime($row["day"] . " " . $row["time_to"]);
-        $current_time = strtotime("$today $time_now");
-
-        if ($current_time <= $reservation_end) {
-            $reservation_conflict = true;
-            $for_class[] = $row["for_class"];
-        }
-    }
-
-    // Default value for for_class if no conflicts are found
-    if (empty($for_class)) {
-        $for_class[] = 0;
-    }
-
-    // Determine the appropriate response based on the conflict status
-    $response = ['conflict' => $reservation_conflict, 'block' => false, 'message' => ''];
-
-    if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
-        $response['block'] = true;
-        $response['message'] = "
-            <center>
-                <div style='width:50%' class='alert alert-danger' role='alert'>
-                    Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!
-                </div>
-            </center>";
-    } elseif ($class == 0 && $reservation_conflict) {
-        $response['message'] = "
-            <center>
-                <div style='width:50%' class='alert alert-danger' role='alert'>
-                    Die Drucker sind zurzeit reserviert!<br>
-                    Als Lehrperson können Sie zwar jetzt trotzdem drucken, sollten es aber nur tun, 
-                    wenn Sie sicher sind, dass nicht gerade eine andere Lehrperson mit einer Klasse drucken will!
-                </div>
-            </center>";
-    }
-
-    return $response;
-}
-
-function check_print_reservation_conflict($link, $class, $path) {
-    $reservation_conflict = false;
-    $for_class = [];
-    $today = date("Y-m-d");
-    $time_now = date("H:i");
-
-    // Calculate the end time of the print
-    $print_time = find_print_time($path); // Assume this function is already defined
-    preg_match('/(\d+)h/', $print_time, $hours_match);
-    preg_match('/(\d+)m/', $print_time, $minutes_match);
-    $hours = isset($hours_match[1]) ? (int)$hours_match[1] : 0;
-    $minutes = isset($minutes_match[1]) ? (int)$minutes_match[1] : 0;
-	//echo("uses ".$minutes." Minutes and ".$hours." hours");
-    $start_time = DateTime::createFromFormat('H:i', $time_now);
-    $end_time = clone $start_time;
-    $end_time->modify("+{$hours} hour");
-    $end_time->modify("+{$minutes} minutes");
-
-    // Query to get all relevant reservations (today and future overlaps)
-    $sql = "
-        SELECT day, time_from, time_to, for_class 
-        FROM reservations 
-        WHERE day >= '$today';
-    ";
-    $stmt = $link->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Check for conflicts with reservations
-    while ($row = $result->fetch_assoc()) {
-        $reservation_start = DateTime::createFromFormat('Y-m-d H:i', $row["day"] . ' ' . $row["time_from"]);
-        $reservation_end = DateTime::createFromFormat('Y-m-d H:i', $row["day"] . ' ' . $row["time_to"]);
-
-        // Adjust reservation end time for multi-day overlaps
-        if ($reservation_end < $reservation_start) {
-            $reservation_end->modify('+1 day');
-        }
-
-        // Check if the print overlaps with any reservation period
-        if ($start_time < $reservation_end && $end_time > $reservation_start) {
-            $reservation_conflict = true;
-            $for_class[] = $row["for_class"];
-        }
-    }
-
-    // Default value for for_class if no conflicts are found
-    if (empty($for_class)) {
-        $for_class[] = 0;
-    }
-
-    // Build response based on conflict and user access
-    $response = ['conflict' => $reservation_conflict, 'block' => false, 'message' => ''];
-
-    if ($reservation_conflict && !in_array($class, $for_class) && $class != 0) {
-        $response['block'] = true;
-        $response['message'] = "
-            <center>
-                <div style='width:50%' class='alert alert-danger' role='alert'>
-                    Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!
-                </div>
-            </center>";
-    } elseif ($class == 0 && $reservation_conflict) {
-        $response['message'] = "
-            <center>
-                <div style='width:50%' class='alert alert-danger' role='alert'>
-                    Die Drucker sind zurzeit reserviert!<br>
-                    Als Lehrperson können Sie zwar jetzt trotzdem drucken, sollten es aber nur tun, 
-                    wenn Sie sicher sind, dass nicht gerade eine andere Lehrperson mit einer Klasse drucken will!
-                </div>
-            </center>";
-    }
-
-    return $response;
-}
-?>
-<!DOCTYPE html>
-<html data-bs-theme="dark">
-	<?php
-	// Initialize the session
-	$warning=false;
-	//error / success messages are stored here and then shown in the modal
-	$global_err="";
-	$global_success="";
+	//auth stuff
 	session_start();
-	include "../config/config.php";
-	require_once "../log/log.php";
-	include "../api/queue.php";
-	// Check if the user is logged in, if not then redirect him to login page
 	if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true or $_SESSION["role"][0]!=="1"){
 	    header("location: /login/login.php");
 	    exit;
 	}
 	$username=htmlspecialchars($_SESSION["username"]);
-	?>
-
-	<?php 
-		$color=$_SESSION["color"]; 
-		$class=$_SESSION["class_id"];
-		include "../assets/components.php";
-	?>
-	<script src="/assets/js/load_page.js"></script>
-	<script>
-		function load_user()
-		{
-			$(document).ready(function(){
-		   	$('#content').load("/assets/php/user_page.php");
-			});
-			$(document).ready(function(){
-   		$('#footer').load("/assets/html/footer.html");
-		});
-		}
-	</script>
-	<?php
-		$role=$_SESSION["role"];
-		echo "<script type='text/javascript' >load_user()</script>";
-		test_queue($link);
-	?>
-
-	<?php $userid=$_SESSION["id"]; ?>
-	<body>
-	<div id="content"></div>
-
+?>
+<!DOCTYPE html>
+<html lang="de" data-bs-theme="dark">
 	<head>
-	  <title>Datei drucken</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>System0 - Print</title>
+		<?php include "../../assets/components.php"; ?>
 	</head>
 	<body>
-		<br><br>
+		<script src="/assets/js/load_page.js"></script>
+		<script>
+			function load_user()
+			{
+				$(document).ready(function(){
+					$('#content').load("/assets/php/user_page.php");
+				});
+				$(document).ready(function(){
+  					$('#footer').load("/assets/html/footer.html");
+				});
+			}
+		</script>
+		<script type='text/javascript' >load_user()</script>
 		<?php
-		if(isset($_POST["printer"]))
-		{
-			$status=0;
-			$free=0;
-			$url="";
-			$apikey="";
-			$printer_url="";
-			$printer_id=htmlspecialchars($_POST["printer"]);
-			if($printer_id=="queue")
-			{
-			 //send file to queue because no printer is ready!
-				if(!empty($_FILES['file_upload']))
-				{
-					$ok_ft=array("gcode","");
-					$unwanted_chr=[' ','(',')','/','\\','<','>',':',';','?','*','"','|','%'];
-					$filetype = strtolower(pathinfo($_FILES['file_upload']['name'],PATHINFO_EXTENSION));
-					$path = "/var/www/html/user_files/$username/";
-					$print_on=$_POST["queue_printer"];
-					$filename=basename( $_FILES['file_upload']['name']);
-					$filename=str_replace($unwanted_chr,"_",$filename);
-					$path = $path . $filename;
-					if(!in_array($filetype,$ok_ft))
-					{
-						echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Dieser Dateityp wird nicht unterstüzt.</div></center>");
-						$global_err="Dieser Dateityp wird nicht unterstüzt.";
-						sys0_log("Could not upload file for ".$_SESSION["username"]." because of unknown file extension",$_SESSION["username"],"PRINT::UPLOAD::FILE::FAILED");//notes,username,type
-					}
-					else
-					{
-						if(move_uploaded_file($_FILES['file_upload']['tmp_name'], $path)) {
-							$sql="INSERT INTO queue (from_userid,filepath,print_on) VALUES (?,?,?)";		
-							$stmt = mysqli_prepare($link, $sql);	
-							mysqli_stmt_bind_param($stmt, "isi", $userid,$path,$print_on);				
-							mysqli_stmt_execute($stmt);
-
-							echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen und an die Warteschlange gesendet</div></center>");
-							$global_success="Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen und an die Warteschlange gesendet";
-							sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to the queue",$_SESSION["username"],"PRINT::UPLOAD::QUEUE");//notes,username,type
-						}   
-						else
-						{
-							echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Datei ".  basename( $_FILES['file_upload']['name']). " konnte hochgeladen werden</div></center>");
-						}
-					}
-					unset($_FILES['file']);
-				}
-				if(isset($_GET["cloudprint"])){
-					$print_on=$_POST["queue_printer"];
-					if(!isset($_GET["pc"]))
-						$path = "/var/www/html/user_files/$username/".$_GET["cloudprint"];
-					else
-						$path = "/var/www/html/user_files/public/".$_GET["cloudprint"];
-					$sql="INSERT INTO queue (from_userid,filepath,print_on) VALUES (?,?,?)";		
-					$stmt = mysqli_prepare($link, $sql);	
-					mysqli_stmt_bind_param($stmt, "isi", $userid,$path,$print_on);				
-					mysqli_stmt_execute($stmt);
-
-
-					echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei ".  basename( $_FILES['file_upload']['name']). " wurde an die Warteschlange gesendet</div></center>");
-					sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to the queue",$_SESSION["username"],"PRINT::UPLOAD::QUEUE");
-
-				}
+                	if(isset($_GET["cloudprint"])){
+				echo("<script>let cloudprint=1;</script>");
+				echo '<script>fetch("/api/uploader/image_preview.php?file='.$_GET["cloudprint"].'").then(res => res.text()).then(data => document.getElementById("preview").src = "data:image/png;base64," + data).catch(err => console.error("Error:", err));</script>';
+			}else{
+				echo("<script>let cloudprint=0;</script>");
 			}
-			else //print on printers, no queue
-			{
-				$sql="select printer_url, free, system_status,apikey,printer_url from printer where id=$printer_id";
-				//echo $sql;
-				$stmt = mysqli_prepare($link, $sql);					
-				mysqli_stmt_execute($stmt);
-				mysqli_stmt_store_result($stmt);
-				mysqli_stmt_bind_result($stmt, $url,$free,$status,$apikey,$printer_url);
-				mysqli_stmt_fetch($stmt);	
-				if($free!=1 or $status!=0)
-				{
-					echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Der Drucker ist zur Zeit nicht verfügbar. Warte einen Moment oder versuche es mit einem anderen Drucker erneut.</div></center>");
-					sys0_log("Could not start job for ".$_SESSION["username"]." with file ".basename($path)."",$_SESSION["username"],"PRINT::JOB::START::FAILED");//notes,username,type
-					exit;
-				}	
-				if(!empty($_FILES['file_upload']))
-				{
-					$ok_ft=array("gcode","");
-					$unwanted_chr=[' ','(',')','/','\\','<','>',':',';','?','*','"','|','%'];
-					$filetype = strtolower(pathinfo($_FILES['file_upload']['name'],PATHINFO_EXTENSION));
-					$path = "/var/www/html/user_files/$username/";
-					$filename=basename( $_FILES['file_upload']['name']);
-					$filename=str_replace($unwanted_chr,"_",$filename);
-					$path = $path . $filename;
-
-					//if(in_array($filetype,$unwanted_ft))
-					if(!in_array($filetype,$ok_ft))
-					{
-						echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Dieser Dateityp wird nicht unterstüzt.</div></center>");
-						sys0_log("Could not upload file for ".$_SESSION["username"]." because of unknown file extension",$_SESSION["username"],"PRINT::UPLOAD::FILE::FAILED");//notes,username,type
-					}
-					else
-					{
-						//check if print key is valid:
-						$print_key=htmlspecialchars($_POST["print_key"]);
-						$sql="SELECT id from print_key where print_key='$print_key'";
-						$stmt = mysqli_prepare($link, $sql);
-						mysqli_stmt_execute($stmt);
-						mysqli_stmt_store_result($stmt);
-							
-						//if(mysqli_stmt_num_rows($stmt) == 1){ turned off because user does not need to have a printer key
-						if(true){
-							mysqli_stmt_close($stmt);
-							if(move_uploaded_file($_FILES['file_upload']['tmp_name'], $path)) {
-								//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Erfolg! Die Datei ".  basename( $_FILES['file_upload']['name']). " wurde hochgeladen.</div></center>");
-								//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
-								$response=check_print_reservation_conflict($link,$_SESSION["class_id"],$path);
-								$block=$response['block'];
-								if($block==false){
-								 if(check_file($path) or isset($_POST["ignore_unsafe"])){
-									exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
-									//file is on printer and ready to be printed
-									$userid=$_SESSION["id"];
-								//	echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
-									sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to printer ".$_POST["printer"]."",$_SESSION["username"],"PRINT::UPLOAD::PRINTER");//notes,username,type
-									$fg=file_get_contents("/var/www/html/user_files/$username/json.json");
-									$json=json_decode($fg,true);
-									if($json['effectivePrint']==false or $json["effectiveSelect"]==false)
-									{
-										echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Ein Fehler ist aufgetreten und der Vorgang konnte nicht gestartet werden. Warte einen Moment und versuche es dann erneut.</div></center>");
-										sys0_log("Could not start job for ".$_SESSION["username"]."with file ".basename($path)."",$_SESSION["username"],"PRINT::JOB::START::FAILED");//notes,username,type
-									}
-									else
-									{
-										$sql="update printer set free=0, printing=1,mail_sent=0, used_by_userid=$userid where id=$printer_id";
-										$stmt = mysqli_prepare($link, $sql);					
-										mysqli_stmt_execute($stmt);
-										//delete printer key:
-										$sql="DELETE from print_key where print_key='$print_key'";
-										$stmt = mysqli_prepare($link, $sql);
-										mysqli_stmt_execute($stmt);	
-										mysqli_stmt_close($stmt);	
-										echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und der Auftrag wurde gestartet.</div></center>");
-									}
-								 }else{
-									$warning=true;
-									echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Achtung, deine Bett oder Extruder Temperatur ist sehr hoch eingestellt. Dies wird zur zerstörung des Druckes und somit zu Müll führen. Bitte setze diese Temperaturen tiefer in den Einstellungen deines Slicers.</div></center>");
-								 }
-								}else{
-									echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Dein Druck konnte nicht gestartet werden, da er nicht fertig wäre, befor eine andere Klasse die Drucker reserviert hat.</div></center>";
-								}
-							}
-							else
-							{
-								echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Ein Fehler beim Uploaden der Datei ist aufgetreten! Versuche es erneut! </div></center>");
-							}
-						}
-						else{
-							echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Der Druckschlüssel ist nicht gültig. Evtl. wurde er bereits benutzt. Versuche es erneut! </div></center>");
-						}
-					}
-					unset($_FILES['file']);
-				}
-				if(isset($_GET["cloudprint"])){
-					if(!isset($_GET["pc"]))
-						$path = "/var/www/html/user_files/$username/".$_GET["cloudprint"];
-					else
-						$path = "/var/www/html/user_files/public/".$_GET["cloudprint"];
-					//check if print key is valid:
-					$print_key=htmlspecialchars($_POST["print_key"]);
-					$sql="SELECT id from print_key where print_key='$print_key'";
-					$stmt = mysqli_prepare($link, $sql);
-					mysqli_stmt_execute($stmt);
-					mysqli_stmt_store_result($stmt);
-
-					//if(mysqli_stmt_num_rows($stmt) == 1){ turned off because user does not need to have a printer key
-					if(true){
-					mysqli_stmt_close($stmt);
-
-							//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei wird an den 3D-Drucker gesendet...</div></center>");
-							$response=check_print_reservation_conflict($link,$_SESSION["class_id"],$path);
-                                                        $block=$response['block'];
-							if($block==false){
-							 if(check_file($path)  or isset($_POST["ignore_unsafe"])){
-								exec('curl -k -H "X-Api-Key: '.$apikey.'" -F "select=true" -F "print=true" -F "file=@'.$path.'" "'.$printer_url.'/api/files/local" > /var/www/html/user_files/'.$username.'/json.json');
-								//file is on printer and ready to be printed
-								$userid=$_SESSION["id"];
-								//echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
-								sys0_log("user ".$_SESSION["username"]." uploaded ".basename($path)." to printer ".$_POST["printer"]."",$_SESSION["username"],"PRINT::UPLOAD::PRINTER");//notes,username,type
-								$fg=file_get_contents("/var/www/html/user_files/$username/json.json");
-								$json=json_decode($fg,true);
-								if($json['effectivePrint']==false or $json["effectiveSelect"]==false)
-								{
-									echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Ein Fehler ist aufgetreten und der Vorgang konnte nicht gestartet werden. Warte einen Moment und versuche es dann erneut.</div></center>");
-									sys0_log("Could not start job for ".$_SESSION["username"]."with file ".basename($path)."",$_SESSION["username"],"PRINT::JOB::START::FAILED");//notes,username,type
-								}
-								else
-								{
-									$sql="update printer set free=0, printing=1,mail_sent=0, used_by_userid=$userid where id=$printer_id";
-									$stmt = mysqli_prepare($link, $sql);
-									mysqli_stmt_execute($stmt);
-									//delete printer key:
-									$sql="DELETE from print_key where print_key='$print_key'";
-									$stmt = mysqli_prepare($link, $sql);
-									mysqli_stmt_execute($stmt);
-									mysqli_stmt_close($stmt);
-									echo("<center><div style='width:50%' class='alert alert-success' role='alert'>Datei gesendet und Auftrag wurde gestartet.</div></center>");
-								}
-							 }else{
-								$warning=true;
-								echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Achtung, deinen Bett oder Extruder Temperatur ist sehr hoch eingestellt. Dies wird zur zerstörung des Druckes und somit zu Müll führen. Bitte setze diese Temperaturen tiefer in den Einstellungen deines Slicers.</div></center>");
-							 }
-							}else{
-									echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Dein Druck konnte nicht gestartet werden, da er nicht fertig wäre, befor eine andere Klasse die Drucker reserviert hat.</div></center>";
-							}
-					}
-					else{
-						echo("<center><div style='width:50%' class='alert alert-danger' role='alert'>Der Druckschlüssel ist nicht gültig. Evtl. wurde er bereits benutzt. Versuche es erneut! </div></center>");
-					}
-				}
-			}
-		}
-
-	?>
-
-			<div class="text-center mt-5" style="min-height: 95vh">
-				<h1>Datei drucken</h1>
-				<!-- Reservations notice -->
-				<?php
-					$response=check_reservation_conflict($link,$_SESSION["class_id"]);
-					echo($response['message']);
-					$block=$response['block'];
-				?>
-				<div class="container d-flex align-items-center justify-content-center" >
-
-				<form class="mt-5" enctype="multipart/form-data" method="POST" action="">
-					<?php if(!isset($_GET["cloudprint"])){
-						echo ('<div class="form-group">');
-							echo('<div class="custom-file">');
-
-								echo('<label for="file_upload" class="form-label">Zu druckende Datei</label>');
-								echo('<input type="file" class="form-control" type="file" id="file_upload" name="file_upload" required accept=".gcode">  ');
-							echo('</div>');
-						echo('</div>');
-					}
-					else{
-						echo ('<div class="form-group">');
-							echo('<div class="custom-file">');
-
-								echo("<p>Cloudfile: ".$_GET["cloudprint"]."</p>");
-							echo('</div>');
-						echo('</div>');
-					}
-					?>
-					<br><br>
-					<div class="form-group">
-						<label class="my-3" for="printer">Druckerauswahl</label>
-						<select class="form-control selector" name="printer" required>
-							<!-- PHP to retrieve printers -->
-							<?php
-							//get number of printers
-							$num_of_printers=0;
-							$sql="select count(*) from printer where free=1 and system_status=0";
-							$stmt = mysqli_prepare($link, $sql);
-							mysqli_stmt_execute($stmt);
-							mysqli_stmt_store_result($stmt);
-							mysqli_stmt_bind_result($stmt, $num_of_printers);
-							mysqli_stmt_fetch($stmt);
-							$last_id=0;
-							$printers_av=0;
-							if(isset($_GET["preselect"])){
-								$preselect=$_GET["preselect"];
-							}else{
-								$preselect=1;
-							}
-							if(!isset($_GET["send_to_queue"])){
-								while($num_of_printers!=0)
-								{
-									$id=0;
-									$sql="Select id,color from printer where id>$last_id and free=1 and system_status=0 order by id";
-									//echo $sql;
-									$color="";
-									$stmt = mysqli_prepare($link, $sql);
-									mysqli_stmt_execute($stmt);
-									mysqli_stmt_store_result($stmt);
-									mysqli_stmt_bind_result($stmt, $id,$color);
-									mysqli_stmt_fetch($stmt);
-
-									$color=intval($color);
-									//get the real color
-									$sql="select name from filament where internal_id=$color";
-									$stmt = mysqli_prepare($link, $sql);
-						                        mysqli_stmt_execute($stmt);
-						                        mysqli_stmt_store_result($stmt);
-						                        mysqli_stmt_bind_result($stmt,$color);
-						                        mysqli_stmt_fetch($stmt);
-
-									if($id!=0 && $id!=$last_id)
-									{
-										if($id==$preselect)
-											echo("<option printer='$id' value='$id' selected>Printer $id - $color</option>");
-										else
-											echo("<option printer='$id' value='$id'>Printer $id - $color</option>");
-										$printers_av++;
-									}
-									$last_id=$id;
-									$num_of_printers--;
-								}
-							}
-							if($printers_av==0 or isset($_GET["send_to_queue"])){
-								echo("<option printer='queue' value='queue'>an Warteschlange senden</option>");
-
-							}	
-							?>
-						</select>
-					</div>
-					<!-- if we send to queue, the user should be able to choose which printer prints it afterwards -->
-					<?php
-					if($printers_av==0  or isset($_GET["send_to_queue"])){
-						echo('<div class="form-group">');
-							echo('<label class="my-3" for="printer">Auf diesem Drucker wird deine Datei gedruckt, sobald er frei ist.</label>');
-							echo('<select class="form-control selector" name="queue_printer" required>');
-
-								//get number of printers
-								$num_of_printers=0;
-								$sql="select count(*) from printer where system_status=0";
-								$stmt = mysqli_prepare($link, $sql);
-								mysqli_stmt_execute($stmt);
-								mysqli_stmt_store_result($stmt);
-								mysqli_stmt_bind_result($stmt, $num_of_printers);
-								mysqli_stmt_fetch($stmt);
-								$last_id=0;
-								$printers_av=0;
-								if(isset($_GET["preselect"])){
-									$preselect=$_GET["preselect"];
-								}else{
-									$preselect=-1;							
-								}
-								echo("<option printer='-1' value='-1' selected selected>erster verfügbarer Drucker</option>");
-								while($num_of_printers!=0)
-								{
-									$id=0;
-									$sql="Select id,color from printer where id>$last_id and system_status=0 order by id";
-									//echo $sql;
-									$color="";
-									$stmt = mysqli_prepare($link, $sql);
-									mysqli_stmt_execute($stmt);
-									mysqli_stmt_store_result($stmt);
-									mysqli_stmt_bind_result($stmt, $id,$color);
-									mysqli_stmt_fetch($stmt);
-									
-									
-									$color=intval($color);
-									//get the real color
-									$sql="select name from filament where internal_id=$color";
-									$stmt = mysqli_prepare($link, $sql);
-						                        mysqli_stmt_execute($stmt);
-						                        mysqli_stmt_store_result($stmt);
-						                        mysqli_stmt_bind_result($stmt,$color);
-						                        mysqli_stmt_fetch($stmt);
-				                                
-									if($id!=0 && $id!=$last_id)
-									{
-										if($id==$preselect)
-											echo("<option printer='$id' value='$id' selected>Drucker $id - $color</option>");
-										else
-											echo("<option printer='$id' value='$id'>Drucker $id - $color</option>");
-										$printers_av++;
-									}
-									$last_id=$id;
-									$num_of_printers--;
-								}	
-							
-							echo('</select>');
-						echo('</div>');
-					}
-					?>
-
-				
-					<br><br>
-					<!--<label class="my-3" for="print_key">Druckschlüssel (Kann im Sekretariat gekauft werden)</label>
-					<input type="text" class="form-control text" id="print_key" name="print_key" placeholder="z.B. A3Rg4Hujkief"><br>-->
-					<?php
-					if($warning==true){
-						echo("<input type='checkbox' id='ignore_unsafe' name='ignore_unsafe' value='true'>");
-						echo("<label for='ignore_unsafe'>Temperaturbeschränkungen Ignorieren und Drucken</label><br>");
-					}
-					
-					?>
+		?>
+		<!-- navbar -->
+		<div id="content"></div>
+		<!-- div where all our content goes -->
+		<div style="min-height:95vh">
+			<!-- we need to show a file upload thing and offer the selectnio of printers -->
+			<div class="container mt-5 d-flex justify-content-center">
+				<form>
+					<div class="mb-3">
+						<label for="fileUpload" class="form-label">3D-Druck Datei</label>
 						<?php
-							if($block==false){
-								echo('<input type="submit" class="btn btn-secondary mb-5" value="Datei drucken" onclick="show_loader();" id="button">');
-								echo('<div class="d-flex align-items-center">');
- 					 				echo('<strong role="status" style="display:none" id="spinner">Hochladen...</strong>');
- 					 				echo('<div class="spinner-border ms-auto" aria-hidden="true" style="display:none" id="spinner2"></div>');
-								echo('</div>');
-							}else{
-								echo "<center><div style='width:50%' class='alert alert-danger' role='alert'>Die Drucker sind zurzeit reserviert! Bitte versuche es später erneut!</div></center>";
+                                                	if(isset($_GET["cloudprint"])){
+                                                	        echo('<input type="text" value="'.$_GET["cloudprint"].'" class="form-control" disabled id="file_upload">');
+                                                	}else{
+								echo('<input type="file" class="form-control" accept=".gcode" id="file_upload">');
+							}
+                                        	?>
+					</div>
+						<?php
+							if(isset($_GET["cloudprint"])){
+								echo('<center><img  style="display:block; width:100%" id="preview"/></center>');
 							}
 						?>
-					
-					
-					<?php
-						if($block==false){
- 					 		if(isset($_GET["send_to_queue"])){
- 					 			echo('<center><a href="print.php">Nur freie Drucker anzeigen.</a></center>');	
- 					 		}else{
- 					 			echo(' <center><a href="print.php?send_to_queue">Auf einem Drucker Drucken, welcher besetzt ist.</a></center>');	
- 					 		}
-						}
- 					 ?>	
-					
+					<div class="mb-3">
+						<label for="selectOption" class="form-label">Drucker</label>
+						<select class="form-select" id="selectOption">
+						    <option selected value="not_set">Bitte wähle einen Drucker</option>
+						</select>
+					</div>
+					<a style="cursor: pointer" onclick="start_upload(1)" class="btn btn-secondary">Drucken</a>
 				</form>
 			</div>
+
 		</div>
-		<br>
+		<!-- footer -->
+		<div id="footer"></div>
 
-<div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="warningModalLabel">Achtung!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="warningModalMessage">
+		<script>
+			let global_error="";
+			//js to handle backend requests
+			//load printers
+			document.addEventListener("DOMContentLoaded", function () {
+				const selectElement = document.getElementById("selectOption");
+				const apiUrl = "/api/uploader/fetch_printers.php"; // Replace with your actual API URL
+    				function getUrlParam(name) {
+        				const urlParams = new URLSearchParams(window.location.search);
+        				return urlParams.get(name);
+    				}
 
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+    				const preselectId = getUrlParam("preselect"); // Get "preselect" value from URL
 
-	<div id="footer"></div>
-<script>
-function show_loader() {
-        // Get the file input element
-        const fileInput = document.getElementById("file_upload");
-        // Check if a file is selected
-        if(fileInput){
-		if (!fileInput.files || fileInput.files.length === 0) {
-        	    // Prevent form submission and show modal
-        	    showWarningModal("Keine Datei ausgewählt. Bitte wähle eine Datei aus!");
-        	    return false; // Prevent form submission
-        	}
-	}
+    				fetch(apiUrl)
+        				.then(response => response.json())
+        				.then(data => {
+        				    data.forEach(item => {
+        				        const option = document.createElement("option");
+                				option.value = item.id;
+						if(item.free==1){
+                					option.textContent = `Drucker ${item.id} - ${item.color}`;
+                				}else{
+							option.textContent = `Drucker ${item.id} - ${item.color} - Warteschlange`;
+						}
+						if (item.id == preselectId) {
+                				    option.selected = true;
+                				}
+						selectElement.appendChild(option);
+        				    });
+        				})
+        			.catch(error => console.error("Error fetching data:", error));
+			});
+			async function start_upload(use_checks){
+				document.getElementById("close_progress_modal2").click();
+				//main function handles the steps from user pressing upload button via checking params to starting job via api
+				//we have a modal that shows progress to the user
+				document.getElementById("close_progress_modal").style.display = "none";
+				document.getElementById("close_progress_modal2").style.display = "none";
+				let steps = [
+        			    "Initialisierung",
+        			    "Datei auf System0 Hochladen",
+        			    "Nach Reservationskonflikten suchen",
+        			    "Nach Invaliden Druckeinstellungen suchen",
+        			    "Job an Drucker senden"
+			        ];
+				let progressContent = document.getElementById("progressContent");
+			        progressContent.innerHTML = ""; // Clear previous content
 
-        // Start the loader spinner if a file is selected
-        document.getElementById("spinner").style.display = "block";
-        document.getElementById("spinner2").style.display = "block";
-        document.getElementById("button").style.display = "none";
+			        let modal = new bootstrap.Modal(document.getElementById("progressModal"));
+        			modal.show();
+				add_step(0,progressContent,steps);
+				//initialising => set all vars to 0 etc
+				finish_step(0,progressContent,steps);
+				if(cloudprint==0){
+					add_step(1,progressContent,steps);
+					//upload file to system0
+					if(await upload_file()==0){
+						finish_step(1,progressContent,steps);
+					}else{
+						add_error("Fehler beim Upload der Datei - "+global_error,progressContent);
+						cancel_step(1,progressContent,steps);
+						show_close_button();
+						return;
+					}
+				}else{
+					//just tell the server what the file is.
+					await fetch("/api/uploader/cloudprint.php?file=<?php echo($_GET['cloudprint']); ?>");
+				}
+				global_error="";
+				//check if there is a reservation ongoing during this print
+				add_step(2,progressContent,steps);
+				let status=await check_reservations();
+				if(status==0){
+                                        finish_step(2,progressContent,steps);
+                                }else if(status==1){
+					//reserved and user is student
+					add_error("Die Drucker sind zurzeit reserviert. Bitte versuche es später erneut.", progressContent);
+					cancel_step(2,progressContent,steps);
+					show_close_button();
+					return;
+				}else if(status==2){
+					//reserved but user is admin
+					add_warning("Die Drucker sind Zurzeit reserviert. Als Lehrperson wird ihr Druck allerdings trozdem gedruckt. Bitte gehen Sie sicher, dass nicht eine Klasse beeinträchtigt wird.",progressContent);
+                                	finish_step(2,progressContent,steps);
+				}else{
+                                        add_error("Fehler beim überprüfen der Reservationen - "+global_error,progressContent);
+                                        cancel_step(2,progressContent,steps);
+					show_close_button();
+					return;
+                                }
+				global_error="";
+				//search for invalid print settings.
+				add_step(3,progressContent,steps);
+				status=await check_illegal_settings(progressContent);
+				if(status==0){
+					finish_step(3,progressContent,steps);
+				}else if(use_checks==0){
+					add_warning("Warnung: Dieser Druck wird mit sehr hohen Temparaturen gedruckt. Dies kann zur zerstörung des Druckers führen!",progressContent);
+					finish_step(3,progressContent,steps);
+				}else if(status==1){
+					add_error("Achtung deine Drucktemparatur ist sehr hoch eingestellt. Dies kann zur zerstörung des Druckers führen! Bitte fahre nur fort, wenn du dir sicher bist, was du tust!",progressContent);
+					add_circumvent_link(progressContent);
+					cancel_step(3,progressContent,steps);
+					show_close_button();
+					return;
+				}else{
+					add_error("Fehler beim prüfen der Druckeinstellungen",progressContent);
+					cancel_step(3,progressContent,steps);
+                                        show_close_button();
+                                        return;
+				}
+				global_error="";
+				//send to printer
+				add_step(4,progressContent,steps);
+				status=await start_job();
+				if(status==0){
+					finish_step(4,progressContent,steps);
+					//add_step(5,progressContent,steps);
+					//finish_step(5,progressContent,steps);
+					add_success("Job erfolgreich gestartet",progressContent);
+				}else if(status==2){
+					finish_step(4,progressContent,steps);
+                                        //add_step(5,progressContent,steps);
+                                        //finish_step(5,progressContent,steps);
+                                        add_success("Job erfolgreich an Warteschlange gesendet",progressContent);
+				}else{
+					add_error("Fehler beim starten des Jobs. "+global_error, progressContent);
+					cancel_step(4,progressContent,steps);
+					show_close_button();
+					return;
+				}
+				show_close_button();
+			}
 
-        return true; // Allow form submission
-}
-function showWarningModal(message) {
-    // Get the modal and message elements
-    const modal = document.getElementById("warningModal");
-    const modalMessage = document.getElementById("warningModalMessage");
+			function add_circumvent_link(progressContent) {
+                                    let stepHtml = `
+                                        <div>
+						<a onclick="start_upload(0);" style="cursor:pointer" target="_blank" class="step-link">Drücke hier, um alle überprüfungen zu umgehen</a>
+                                        </div>
+                                        `;
 
-    // Check if the modal and message elements exist
-    if (modal && modalMessage) {
-        modalMessage.textContent = message; // Set the message text
-        const bootstrapModal = new bootstrap.Modal(modal); // Initialize the modal
-        bootstrapModal.show(); // Show the modal using Bootstrap's method
-    } else {
-        console.warn("Modal or modal message element not found.");
-    }
-}
+                                        progressContent.innerHTML += stepHtml;
+                        }
 
-</script>
-</body>
+			function finish_step(index,progressContent,steps){
+				let stepId = "step-" + index;
+				let stepElement = document.getElementById(stepId);
+                                if (stepElement) {
+                                        stepElement.innerHTML = `
+                                       		<span class="text-success fw-bold">✔</span>
+                                        	<span>${steps[index]}</span>
+                                	`;
+                                }
+				if (index >= steps.length-1){
+                                        document.getElementById("close_progress_modal").style.display = "block";
+                                        document.getElementById("close_progress_modal2").style.display = "block";
+				}
+			}
+                        function show_close_button(){
+                                document.getElementById("close_progress_modal").style.display = "block";
+                                document.getElementById("close_progress_modal2").style.display = "block";
+                        }
+			function cancel_step(index,progressContent,steps){
+                                let stepId = "step-" + index;
+                                let stepElement = document.getElementById(stepId);
+                                if (stepElement) {
+                                        stepElement.innerHTML = `
+                                                <span class="text-success fw-bold">❌</span>
+                                                <span>${steps[index]}</span>
+                                        `;
+				}
+                                document.getElementById("close_progress_modal").style.display = "block";
+                                document.getElementById("close_progress_modal2").style.display = "block";
+                        }
+                        function add_error(msg,progressContent){
+				let errorHtml = `
+					<br>
+					<div class='alert alert-danger' role='alert'>Fehler - ${msg}</div>
+                                        `;
 
+                                progressContent.innerHTML += errorHtml;
+                        }
+			function add_success(msg,progressContent){
+                                let errorHtml = `
+                                        <br>
+                                        <div class='alert alert-success' role='alert'>Erfolg - ${msg}</div>
+                                        `;
+
+                                progressContent.innerHTML += errorHtml;
+                        }
+			function add_warning(msg,progressContent){
+                                let errorHtml = `
+                                        <br>
+                                        <div class='alert alert-warning' role='alert'>Warnung - ${msg}</div>
+                                        `;
+
+                                progressContent.innerHTML += errorHtml;
+                        }
+			function add_step(index,progressContent,steps) {
+                                    let stepId = "step-" + index;
+                                    let stepHtml = `
+                                        <div class="step-container" id="${stepId}">
+                                            <span class="spinner-border text-primary" role="status"></span>
+                                            <span>${steps[index]}</span>
+                                        </div>
+                                        `;
+
+                                        progressContent.innerHTML += stepHtml;
+                        }
+			async function check_illegal_settings(progressContent){
+				try {
+                                const response = await fetch("/api/uploader/check_illegal_settings.php");
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! Status: ${response.status}`);
+                                }
+
+                                const data = await response.json();
+				if(data["status"]!=0){
+					global_error="Dieser Fehler ist auf dem Drucker. Warte einige Minuten und versuche es erneut.";
+				}
+                                return data["status"];
+                         } catch (error) {
+                                return 4;
+                         }
+			}
+			async function start_job(){
+				let printer_id=document.getElementById("selectOption").value;
+				if(printer_id=="not_set"){
+					global_error="Kein Drucker ausgewählt";
+					return 5;
+				}
+                                try {
+                                const response = await fetch("/api/uploader/start_job.php?printer="+printer_id);
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! Status: ${response.status}`);
+                                }
+
+                                const data = await response.json();
+                                return data["status"];
+                         } catch (error) {
+                                return 5;
+                         }
+                        }
+			async function upload_file(){
+				const fileInput = document.getElementById('file_upload');
+            			const file = fileInput.files[0];
+
+            			if (!file) {
+					global_error="Keine Datei ausgewählt";
+                			return 1;
+		            	}
+
+			            const formData = new FormData();
+        			    formData.append('file', file);
+
+        			    try {
+                			const response = await fetch('/api/uploader/upload_file.php', {
+                			    method: 'POST',
+                			    body: formData,
+                			});
+                			if (response.ok) {
+                			    const result = await response.json();
+						if(result.status=="error"){
+							global_error=result.message;
+							return 1;
+						}
+                			} else {
+						return 1;
+                			}
+            			} catch (error) {
+					return 1;
+            			}
+				return 0;
+			}
+			async function check_reservations() {
+			    try {
+			        const response = await fetch("/api/uploader/check_reservations.php");
+        			if (!response.ok) {
+        			    throw new Error(`HTTP error! Status: ${response.status}`);
+        			}
+
+			        const data = await response.json();
+            			return data["status"];
+    			 } catch (error) {
+    			    	return 4;
+    			 }
+			}
+
+		</script>
+	<!-- progress modal -->
+	<div class="modal fade" id="progressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="progressModalLabel" aria-hidden="false">
+    		<div class="modal-dialog" role="document">
+        		<div class="modal-content">
+        		    <div class="modal-header">
+        		        <h5 class="modal-title" id="progressModalLabel">Fortschritt</h5>
+                		<button id="close_progress_modal" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            		    </div>
+         	   		<div class="modal-body">
+           			     <div id="progressContent"></div>
+           			</div>
+            			<div class="modal-footer">
+                			<button id="close_progress_modal2" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schliessen</button>
+            			</div>
+        		</div>
+    		</div>
+	</div>
+
+	</body>
 </html>
