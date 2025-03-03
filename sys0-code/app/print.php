@@ -13,7 +13,7 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>System0 - Print</title>
-		<?php include "../../assets/components.php"; ?>
+		<?php include "../assets/components.php"; ?>
 	</head>
 	<body>
 		<script src="/assets/js/load_page.js"></script>
