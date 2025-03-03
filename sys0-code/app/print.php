@@ -223,7 +223,7 @@
 				let stepElement = document.getElementById(stepId);
                                 if (stepElement) {
                                         stepElement.innerHTML = `
-                                       		<span class="text-success fw-bold">✔</span>
+                                       		<span class="text-success fw-bold">✅</span>
                                         	<span>${steps[index]}</span>
                                 	`;
                                 }
