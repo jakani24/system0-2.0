@@ -71,11 +71,13 @@ while (mysqli_stmt_fetch($stmt)) {
 		$printer["print_status"]="Drucken";
 		$printer["view"]=1;
 	}
+	$printer["progress"]=($json["job"]["progress"]["printTime"]/($json["job"]["progress"]["printTime"]+$json["job"]["progress"]["printTimeLeft"]));
     }else if($cancel==1){
 	exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
         $fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
         $json = json_decode($fg, true);
-        $printer["progress"] = (int) $json['progress']['completion'];
+        //$printer["progress"] = (int) $json['progress']['completion'];
+	$printer["progress"]=($json["job"]["progress"]["printTime"]/($json["job"]["progress"]["printTime"]+$json["job"]["progress"]["printTimeLeft"]));
         $printer["file"] = short_path($json["job"]["file"]["name"], 10, 10);
         $printer["print_time_total"] = seconds_to_time(intval($json["job"]["estimatedPrintTime"]));
         $printer["print_time_left"] = seconds_to_time(intval($json["progress"]["printTimeLeft"]));
@@ -92,7 +94,8 @@ while (mysqli_stmt_fetch($stmt)) {
         $json = json_decode($fg, true);
 	if($json['state']=="Starting print from SD" or $json['state']=="Printing" or $json['state']=="Printing from SD" or $system_status==99){
 		$printer["print_status"]="Von anderer Quelle aus gestartet.";
-		$printer["progress"] = (int) $json['progress']['completion'];
+		//$printer["progress"] = (int) $json['progress']['completion'];
+		$printer["progress"]=($json["job"]["progress"]["printTime"]/($json["job"]["progress"]["printTime"]+$json["job"]["progress"]["printTimeLeft"]));
         	$printer["file"] = short_path($json["job"]["file"]["name"], 10, 10);
         	$printer["full_file"]=$json["job"]["file"]["name"];
         	$printer["print_time_total"] = seconds_to_time(intval($json["job"]["estimatedPrintTime"]));

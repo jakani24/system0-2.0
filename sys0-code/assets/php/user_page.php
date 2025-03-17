@@ -113,9 +113,8 @@
 							session_start();
 							echo('
 								<div class="card m-2" style="width: 14em;" href="#">
-									<br>
 									<div class="d-flex justify-content-center align-items-center card-img-top" style="height:auto;margin-top:20px">
-										<i class="fa-solid fa-lock fa-6x justify-content-center"></i>
+										<i class="fa-solid fa-lock fa-3x justify-content-center"></i>
 									</div>
 									
 									<div class="card-body">
@@ -128,9 +127,8 @@
 								');
 							echo('
                                                                 <div class="card m-2" style="width: 14em;" href="#">
-                                                                        <br>
                                                                         <div class="d-flex justify-content-center align-items-center card-img-top" style="height:auto;margin-top:20px">
-                                                                                <i class="fa-solid fa-server fa-6x justify-content-center"></i>
+                                                                                <i class="fa-solid fa-server fa-3x justify-content-center"></i>
                                                                         </div>
 
                                                                         <div class="card-body">
@@ -145,7 +143,7 @@
 								echo('
 									<div class="card m-2" style="width: 14em;" href="#">
 										<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-											<i class="fa-solid fa-user-plus fa-6x justify-content-center"></i>
+											<i class="fa-solid fa-user-plus fa-3x justify-content-center"></i>
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">Neuer Admin erstellen</h5>
@@ -161,7 +159,7 @@
 
 									<div class="card m-2" style="width: 14em;" href="#">
 										<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-											<i class="fa-solid fa-users fa-6x justify-content-center"></i>
+											<i class="fa-solid fa-users fa-3x justify-content-center"></i>
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">Benutzer verwalten</h5>
@@ -174,7 +172,7 @@
 							echo('
 								<div class="card m-2" style="width: 14em;" href="#">
 									<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-										<i class="fa-solid fa-trash fa-6x justify-content-center"></i>
+										<i class="fa-solid fa-trash fa-3x justify-content-center"></i>
 									</div>
 									<div class="card-body">
 										<h5 class="card-title">Account löschen</h5>
@@ -188,7 +186,7 @@
 							echo('
 								<div class="card m-2" style="width: 14em;" href="#">
 									<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-										<i class="fa-solid fa-shield-halved fa-6x justify-content-center"></i>
+										<i class="fa-solid fa-shield-halved fa-3x justify-content-center"></i>
 									</div>
 									<div class="card-body">
 										<h5 class="card-title">Datenschutzrichtlinie</h5>
@@ -202,7 +200,7 @@
 							echo('
 								<div class="card m-2" style="width: 14em;" href="#">
 									<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-										<i class="fa-solid fa-circle-info fa-6x justify-content-center"></i>
+										<i class="fa-solid fa-circle-info fa-3x justify-content-center"></i>
 									</div>
 									<div class="card-body">
 										<h5 class="card-title">Disclaimer</h5>
@@ -218,7 +216,7 @@
 								echo('
 									<div class="card m-2" style="width: 14em;" href="#">
 										<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-											<i class="fa-solid fa-file fa-6x justify-content-center"></i>
+											<i class="fa-solid fa-file fa-3x justify-content-center"></i>
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">System0 Protokoll ansehen</h5>
@@ -233,7 +231,7 @@
 								echo('
 									<div class="card m-2" style="width: 14em;" href="#">
 										<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-											<i class="fa-solid fa-key fa-6x justify-content-center"></i>
+											<i class="fa-solid fa-key fa-3x justify-content-center"></i>
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">System0 APIkey ansehen</h5>
@@ -248,7 +246,7 @@
 								echo('
 									<div class="card m-2" style="width: 14em;" href="#">
 										<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-											<i class="fa-solid fa-print fa-6x justify-content-center"></i>
+											<i class="fa-solid fa-print fa-3x justify-content-center"></i>
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">Einstellungen & Statistiken</h5>
@@ -263,7 +261,7 @@
 								echo('
 									<div class="card m-2" style="width: 14em;" href="#">
 										<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-											<i class="fa-solid fa-calendar-days fa-6x justify-content-center"></i>
+											<i class="fa-solid fa-calendar-days fa-3x justify-content-center"></i>
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">Drucker Reservieren</h5>
@@ -277,7 +275,7 @@
 								echo('
 									<div class="card m-2" style="width: 14em;" href="#">
 										<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-											<i class="fa-solid fa-key  fa-6x justify-content-center"></i>
+											<i class="fa-solid fa-key  fa-3x justify-content-center"></i>
 										</div>
 										<div class="card-body">
 											<h5 class="card-title">Druckschlüssel erstellen</h5>
@@ -290,7 +288,7 @@
 								?>
 							<div class="card m-2" style="width: 14em;" href="#">
 								<div class="d-flex justify-content-center align-items-center card-img-top" style="height: auto;margin-top:20px">
-									<i class="fa-solid fa-message fa-6x justify-content-center"></i>
+									<i class="fa-solid fa-message fa-3x justify-content-center"></i>
 								</div>
 								<div class="card-body">
 									<input id="telegram_id" type="text" class="form-control mb-2" placeholder="Telegram Chat Id" value="<?php echo($_SESSION["telegram_id"]); ?>" oninput="update_telegram_id();">
