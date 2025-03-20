@@ -93,6 +93,7 @@
         				    data.forEach(item => {
         				        const option = document.createElement("option");
                 				option.value = item.id;
+						if(item.error_status==0){
 						if(item.free==1){
                 					option.textContent = `Drucker ${item.id} - ${item.color}`;
                 				}else{
@@ -102,6 +103,7 @@
                 				    option.selected = true;
                 				}
 						selectElement.appendChild(option);
+						}
         				    });
         				})
         			.catch(error => console.error("Error fetching data:", error));
