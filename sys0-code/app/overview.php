@@ -30,7 +30,7 @@
                 mysqli_stmt_store_result($stmt);
                 mysqli_stmt_bind_result($stmt, $cnt);
                 mysqli_stmt_fetch($stmt);
-                $sql="update printer set free=1,printing=0,cancel=0 ,used_by_userid=0, system_status=0 where id=$printer_id";
+                $sql="update printer set free=1,printing=0,cancel=0, used_by_userid=0 where id=$printer_id";
                 $stmt = mysqli_prepare($link, $sql);
                 mysqli_stmt_execute($stmt);
 		//try to find out how much filament was used
