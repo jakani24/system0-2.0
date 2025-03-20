@@ -72,7 +72,7 @@ while (mysqli_stmt_fetch($stmt)) {
 		$printer["view"]=1;
 	}
 	$printer["progress"]=ceil(100*intval($json["progress"]["printTime"])/(intval($json["progress"]["printTime"])+intval($json["progress"]["printTimeLeft"])+1));
-    }else if($cancel==1){
+    }else if($cancel==1 && ($system_status==0 or $system_status==99)){
 	exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
         $fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
         $json = json_decode($fg, true);
