@@ -469,43 +469,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	<center><h3>Warteschlange</h3></center>
         <?php
-                $userid=$_SESSION["id"];
-                $cnt=0;
-                $filepath="";
-                $sql="select count(*) from queue";
-                $stmt = mysqli_prepare($link, $sql);
-                mysqli_stmt_execute($stmt);
-                mysqli_stmt_store_result($stmt);
-                mysqli_stmt_bind_result($stmt, $cnt);
-                mysqli_stmt_fetch($stmt);
-                //echo($cnt);
-                echo("<div class='container'><div class='row'><div class='col'><div class='overflow-auto'><table class='table'><thead><tr><th>Datei</th><th>Drucken auf Drucker</th><th>aus der Warteschlange entfernen</th></tr></thead><tbody>");
-                $last_id=0;
-                $form_userid=0;
-                $print_on=0;
-                while($cnt!=0)
-                {
-                        $sql="select id,filepath,from_userid,print_on from queue where id>$last_id order by id";
-                        $cancel=0;
-                        $stmt = mysqli_prepare($link, $sql);
-                        echo mysqli_error($link);
-                        mysqli_stmt_execute($stmt);
-                        mysqli_stmt_store_result($stmt);
-                        mysqli_stmt_bind_result($stmt, $queue_id,$filepath,$from_userid,$print_on);
-                        mysqli_stmt_fetch($stmt);
-                        $filepath=basename($filepath);
-                        $last_id=$queue_id;
-                        echo("<tr><td>$filepath</td>");
-                        if($print_on==-1)
-                                echo("<td>Erster verfügbarer Drucker</td>");
-                        else
-                                echo("<td>$print_on</td>");
-                        if($_SESSION["role"][3]==="1" or $_SESSION["id"]==$from_userid)
-                                echo("<td><form method='POST' action='?remove_queue=$queue_id&rid=".$_SESSION["rid"]."'><button type='submit' value='remove'  name='remove' class='btn btn-danger'>Löschen</button></form></td></tr>");
+		
+		$userid = $_SESSION["id"];
+		$cnt = 0;
+		$sql = "SELECT COUNT(*) FROM queue";
 
-                        $cnt--;
-                }
-                echo("</tbody></table></div></div></div></div>");
+		$stmt = mysqli_prepare($link, $sql);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_bind_result($stmt, $cnt);
+		mysqli_stmt_fetch($stmt);
+		mysqli_stmt_close($stmt);
+
+		$last_id = 0;
+
+		echo "<div class='container'><div class='row'><div class='col'><div class='overflow-auto'>
+			<table class='table'>
+				<thead>
+					<tr>
+					    <th>Datei</th>
+					    <th>Drucken auf Drucker</th>
+					    <th>Auftrag von</th>
+					    <th>Aus der Warteschlange entfernen</th>
+					</tr>
+				</thead>
+			<tbody>";
+
+		while ($cnt > 0) {
+		    $sql = "SELECT q.id, q.filepath, q.from_userid, q.print_on, u.username 
+		            FROM queue q 
+		            JOIN users u ON q.from_userid = u.id 
+		            WHERE q.id > ? 
+		            ORDER BY q.id LIMIT 1";
+
+		    $stmt = mysqli_prepare($link, $sql);
+		    mysqli_stmt_bind_param($stmt, "i", $last_id);
+		    mysqli_stmt_execute($stmt);
+		    mysqli_stmt_bind_result($stmt, $queue_id, $filepath, $from_userid, $print_on, $from_user);
+		    mysqli_stmt_fetch($stmt);
+		    mysqli_stmt_close($stmt);
+
+		    if (!$queue_id) break; // Exit if no more entries
+
+		    $filepath = basename($filepath);
+		    $last_id = $queue_id;
+
+		    echo "<tr>
+		            <td>{$filepath}</td>
+		            <td>" . ($print_on == -1 ? "Erster verfügbarer Drucker" : htmlspecialchars($print_on)) . "</td>
+		            <td>{$from_user}</td>";
+    
+		    if ($_SESSION["role"][3] === "1" || $_SESSION["id"] == $from_userid) {
+		        echo "<td>
+		                <form method='POST' action='?remove_queue={$queue_id}&rid={$_SESSION["rid"]}'>
+		                    <button type='submit' name='remove' class='btn btn-danger'>Löschen</button>
+		                </form>
+	              </td>";
+		    }
+		    echo "</tr>";
+    
+		    $cnt--;
+		}
+
+		echo "</tbody></table></div></div></div></div>";
         ?>
 
 <?php

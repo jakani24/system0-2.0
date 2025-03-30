@@ -6,5 +6,9 @@
         }
         $username=$_SESSION["username"];
         $path = "/var/www/html/user_files/$username/";
-        $_SESSION["current_file"]=$path.$_GET["file"];
+	$public_path = "/var/www/html/user_files/public/";
+	if($_GET["pc"]=="1")
+        	$_SESSION["current_file"]=$public_path.$_GET["file"];
+	else
+		$_SESSION["current_file"]=$path.$_GET["file"];
 ?>

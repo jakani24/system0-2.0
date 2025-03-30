@@ -7,8 +7,10 @@ session_start();
             exit;
         }
 $username=$_SESSION["username"];
-echo(get_base64_preview("/var/www/html/user_files/$username/".$_GET["file"]));
-
+if($_GET["pc"]=="1")
+	echo(get_base64_preview("/var/www/html/user_files/public/".$_GET["file"]));
+else
+	echo(get_base64_preview("/var/www/html/user_files/$username/".$_GET["file"]));
 function get_base64_preview($filename){
                 $base64="";
                 $file=fopen($filename,"r");

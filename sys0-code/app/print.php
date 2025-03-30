@@ -32,7 +32,7 @@
 		<?php
                 	if(isset($_GET["cloudprint"])){
 				echo("<script>let cloudprint=1;</script>");
-				echo '<script>fetch("/api/uploader/image_preview.php?file='.$_GET["cloudprint"].'").then(res => res.text()).then(data => document.getElementById("preview").src = "data:image/png;base64," + data).catch(err => console.error("Error:", err));</script>';
+				echo '<script>fetch("/api/uploader/image_preview.php?file='.$_GET["cloudprint"].'&pc='.isset($_GET["pc"]).'").then(res => res.text()).then(data => document.getElementById("preview").src = "data:image/png;base64," + data).catch(err => console.error("Error:", err));</script>';
 			}else{
 				echo("<script>let cloudprint=0;</script>");
 			}
@@ -96,6 +96,9 @@
 						if(item.error_status==0){
 						if(item.free==1){
                 					option.textContent = `Drucker ${item.id} - ${item.color}`;
+							if(preselectId==null){
+                                                                option.selected="true";
+                                                        }
                 				}else{
 							option.textContent = `Drucker ${item.id} - ${item.color} - Warteschlange`;
 						}
@@ -108,6 +111,44 @@
         				})
         			.catch(error => console.error("Error fetching data:", error));
 			});
+			async function reload_printer_selection(){
+				document.getElementById("selectOption").innerHTML = "";
+				const selectElement = document.getElementById("selectOption");
+                                const apiUrl = "/api/uploader/fetch_printers.php"; // Replace with your actual API URL
+                                function getUrlParam(name) {
+                                        const urlParams = new URLSearchParams(window.location.search);
+                                        return urlParams.get(name);
+                                }
+
+                                const preselectId = getUrlParam("preselect"); // Get "preselect" value from URL
+				const option_1 = document.createElement("option");
+				option_1.value = "not_set";
+				option_1.textContent = "Bitte wähle einen Drucker";
+				selectElement.appendChild(option_1);
+                                fetch(apiUrl)
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            data.forEach(item => {
+                                                const option = document.createElement("option");
+                                                option.value = item.id;
+                                                if(item.error_status==0){
+                                                if(item.free==1){
+                                                        option.textContent = `Drucker ${item.id} - ${item.color}`;
+							if(preselectId==null){
+								option.selected="true";
+							}
+                                                }else{
+                                                        option.textContent = `Drucker ${item.id} - ${item.color} - Warteschlange`;
+                                                }
+                                                if (item.id == preselectId) {
+                                                    option.selected = true;
+                                                }
+                                                selectElement.appendChild(option);
+                                                }
+                                            });
+                                        })
+                                .catch(error => console.error("Error fetching data:", error));
+			}
 			async function start_upload(use_checks){
 				document.getElementById("close_progress_modal2").click();
 				//main function handles the steps from user pressing upload button via checking params to starting job via api
@@ -142,7 +183,7 @@
 					}
 				}else{
 					//just tell the server what the file is.
-					await fetch("/api/uploader/cloudprint.php?file=<?php echo($_GET['cloudprint']); ?>");
+					await fetch("/api/uploader/cloudprint.php?file=<?php echo($_GET['cloudprint']); ?>&pc=<?php echo(isset($_GET['pc'])); ?>");
 				}
 				global_error="";
 				//check if there is a reservation ongoing during this print
@@ -208,6 +249,7 @@
 					return;
 				}
 				show_close_button();
+				reload_printer_selection();
 			}
 
 			function add_circumvent_link(progressContent) {
