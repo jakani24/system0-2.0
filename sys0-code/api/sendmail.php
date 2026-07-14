@@ -20,10 +20,10 @@
 	mysqli_stmt_bind_result($stmt, $cnt);
 	mysqli_stmt_fetch($stmt);	
 	//echo($cnt);
-	$is_free=0;					
+	$is_free=0;						
 	$last_id=0;	
 	$mail_sent=1;	
-	$used_by_userid=0;			
+	$used_by_userid=0;				
 	while($cnt!=0)
 	{	
 
@@ -36,8 +36,17 @@
 		mysqli_stmt_fetch($stmt);
 		$last_id=$printer_id;
 
-		//printer is printing
-		exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/$username/json.json");
+		//printer is printing - use cURL instead of exec()
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url . '/api/job');
+		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-Key: " . $apikey));
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$response = curl_exec($ch);
+		curl_close($ch);
+		file_put_contents("/var/www/html/user_files/$username/json.json", $response);
+		
 		$fg=file_get_contents("/var/www/html/user_files/$username/json.json");
 		$json=json_decode($fg,true);
 		
@@ -65,27 +74,64 @@
 				if($mail_sent==0 && $notification_telegram==1){
 					//send telegram message
 					echo("sending telegram for printer $printer_id<br>");
-					$text = urlencode("Hi $username2\nDein Druck auf Drucker $printer_id ist fertig\nDatei, welche du gedruckt hast: $file\n");
-					exec("curl \"https://api.telegram.org/$api/sendMessage?chat_id=$telegram_id&text=$text\"");
+					$text = "Hi $username2\nDein Druck auf Drucker $printer_id ist fertig\nDatei, welche du gedruckt hast: $file\n";
+					
+					$ch = curl_init();
+					$api_url = "https://api.telegram.org/" . $api . "/sendMessage";
+					curl_setopt($ch, CURLOPT_URL, $api_url);
+					curl_setopt($ch, CURLOPT_POST, true);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array(
+						'chat_id' => $telegram_id,
+						'text' => $text
+					)));
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					curl_exec($ch);
+					curl_close($ch);
+					
 					$sql="update printer set mail_sent=1 where id=$printer_id";
 					$stmt = mysqli_prepare($link, $sql);					
 					mysqli_stmt_execute($stmt);
-	
+
 				}
 
 				if($mail_sent==0 && $notification_mail==1)
 				{
 
 					echo("sending mail for printer $printer_id<br>");
-					$mail=<<<EOF
-curl --request POST \
-  --url https://api.sendgrid.com/v3/mail/send \
-  --header "Authorization: Bearer $SENDGRID_API_KEY" \
-  --header 'Content-Type: application/json' \
-  --data '{"personalizations": [{"to": [{"email": "$used_by_user"}]}],"from": {"email": "$sendgrid_email"},"subject": "3D-Druck $file abholbereit","content": [{"type": "text/html", "value": "Hallo $username2<br>Dein 3D-Druck auf Drucker $printer_id ist fertig.<br>Bitte hole diesen ab und vergiss nicht den Drucker danach freizugeben!<br>Deine Aufträge: <a href='https://app.ksw3d.ch/system0/html/php/login/v3/php/overview.php?private'>https://app.ksw3d.ch/system0/html/php/login/v3/php/overview.php?private</a><br>Datei, welche du gedruckt hast: $file<br><br>Vielen dank für dein Vertrauen in uns!<br>Code Camp 2024<br>"}]}'
-EOF;
+					
+					// Use cURL to send email via SendGrid API
+					$email_content = "Hallo $username2<br>Dein 3D-Druck auf Drucker $printer_id ist fertig.<br>Bitte hole diesen ab und vergiss nicht den Drucker danach freizugeben!<br>Deine Aufträge: <a href='https://app.ksw3d.ch/system0/html/php/login/v3/php/overview.php?private'>https://app.ksw3d.ch/system0/html/php/login/v3/php/overview.php?private</a><br>Datei, welche du gedruckt hast: $file<br><br>Vielen dank für dein Vertrauen in uns!<br>Code Camp 2024<br>";
+					
+					$ch = curl_init();
+					curl_setopt($ch, CURLOPT_URL, "https://api.sendgrid.com/v3/mail/send");
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+					curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(array(
+						"personalizations" => array(
+							array(
+								"to" => array(
+									array("email" => $used_by_user)
+								)
+							)
+						),
+						"from" => array("email" => $sendgrid_email),
+						"subject" => "3D-Druck $file abholbereit",
+						"content" => array(
+							array(
+								"type" => "text/html",
+								"value" => $email_content
+							)
+						)
+					)));
+					curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+						"Authorization: Bearer " . $SENDGRID_API_KEY,
+						"Content-Type: application/json"
+					));
+					
 					$out="";
-					exec($mail,$out);
+					curl_exec($ch);
+					curl_close($ch);
+					
 					$sql="update printer set mail_sent=1 where id=$printer_id";
 					$stmt = mysqli_prepare($link, $sql);					
 					mysqli_stmt_execute($stmt);
@@ -93,7 +139,7 @@ EOF;
 		}
 		else if($cancel==1){
 				//print cancelled
-		}								
+		}						
 		//else: print still running
 		$cnt--;
 	}

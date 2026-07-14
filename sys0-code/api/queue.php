@@ -36,10 +36,34 @@ function test_queue($link) // Function to check if any printer is free and proce
 
             if (mysqli_stmt_fetch($stmt_free_printers)) { // Found a free printer
                 $username = $_SESSION["username"];
-                $curl_cmd = 'curl -k -H "X-Api-Key: ' . $papikey . '" -F "select=true" -F "print=true" -F "file=@' . $qfilepath . '" "' . $purl . '/api/files/local" > /var/www/html/user_files/' . $username . '/json.json';
-                exec($curl_cmd);
                 
-                $fg = file_get_contents("/var/www/html/user_files/$username/json.json");
+                // Use cURL library instead of exec() for safety
+                $file_path = $qfilepath;
+                $output_file = "/var/www/html/user_files/" . $username . "/json.json";
+                
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $purl . '/api/files/local');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                    "X-Api-Key: " . $papikey
+                ));
+                
+                // Use CURLFile for safe file upload
+                $cfile = new CURLFile($file_path);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, array(
+                    'select' => 'true',
+                    'print' => 'true',
+                    'file' => $cfile
+                ));
+                
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                
+                $response = curl_exec($ch);
+                curl_close($ch);
+                
+                file_put_contents($output_file, $response);
+                $fg = file_get_contents($output_file);
                 $json = json_decode($fg, true);
 
                 if ($json['effectivePrint'] == true && $json["effectiveSelect"] == true) {

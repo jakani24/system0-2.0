@@ -45,8 +45,17 @@
                 mysqli_stmt_bind_result($stmt, $url,$apikey);
                 mysqli_stmt_fetch($stmt);
 		$stmt->close();
-		//connect to the printer
-		exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/$username/finish.json");
+		//connect to the printer - use cURL instead of exec()
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url . '/api/job');
+		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-Key: " . $apikey));
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$response = curl_exec($ch);
+		curl_close($ch);
+		file_put_contents("/var/www/html/user_files/$username/finish.json", $response);
+		
 		$fg=file_get_contents("/var/www/html/user_files/$username/finish.json");
                 $json=json_decode($fg,true);
 		$userid=$_SESSION["id"];
@@ -76,7 +85,21 @@
                 mysqli_stmt_bind_result($stmt, $cnt,$apikey,$printer_url);
                 mysqli_stmt_fetch($stmt);
 
-                exec("curl -k -H \"X-Api-Key: $apikey\" -H \"Content-Type: application/json\" --data '{\"command\":\"cancel\"}' \"$printer_url/api/job\" > /var/www/html/user_files/$username/json.json");
+                // Use cURL instead of exec() to prevent command injection
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $printer_url . '/api/job');
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+			"X-Api-Key: " . $apikey,
+			"Content-Type: application/json"
+		));
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(array("command" => "cancel")));
+		$response = curl_exec($ch);
+		curl_close($ch);
+		file_put_contents("/var/www/html/user_files/$username/json.json", $response);
+		
                 $fg=file_get_contents("/var/www/html/user_files/$username/json.json");
                 $json=json_decode($fg,true);
                 if($json["error"]!="")
@@ -245,7 +268,7 @@ function updatePrinterData(data) {
         if (printer.view == 0) {
             printerStatus = 'Fertig';
         }else if(printer.view==1){
-		printerStatus = 'Drucken';
+	printerStatus = 'Drucken';
 	}else if(printer.view==2){
                 printerStatus = 'Abgebrochen';
 	}else if(printer.view==3){
@@ -280,7 +303,7 @@ function updatePrinterData(data) {
 		        		<tr><td><a class='btn btn-success' href='overview.php?free=${printer.printer_id}&rid=<?php echo($_SESSION["rid"]); ?>'>Freigeben</a></td></tr>
 			        </table>
         		    </div>
-        		`;
+        	`;
 		}else{
 			printerCard.innerHTML = `
 				<div class="card-body">
@@ -317,19 +340,19 @@ function updatePrinterData(data) {
               					<div class="progress-bar" role="progressbar" style="width: ${printer.progress}%" aria-valuenow="${printer.progress}" aria-valuemin="0" aria-valuemax="100">${printer.progress}%</div>
                				</div>
              				<table class="table table-borderless">
-           					<thead>
-          						<tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
+           				<thead>
+          					<tr><td>Status</td><td style="color: ${getColorByStatus(printer.view)}">${printerStatus}</td></tr>
                   					<tr><td>Genutzt von</td><td>${printer.username}</td></tr>
                         				<tr><td>Filamentfarbe</td><td>${printer.filament_color}</td></tr>
                         				<tr><td>Erwartete Druckzeit</td><td>${printer.print_time_total}</td></tr>
                         				<tr><td>Verbleibende Druckzeit</td><td>${printer.print_time_left}</td></tr>
-                       	 				<tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
+                       	 			<tr><td>Vergangene Druckzeit</td><td>${printer.print_time}</td></tr>
 							<tr><td>Datei</td><td><div class='hover-element'>${printer.file}<div class='description'>${printer.full_file}</div></div></td></tr>
                     				</thead>
 		                	<tr><td><button class='btn btn-danger' onclick='update_cancel_modal(${printer.printer_id},<?php echo($_SESSION["rid"]); ?>)'>Abbrechen</button></td></tr>
 					</table>
-            			</div>
-        		`;
+            				</div>
+        	`;
                 }else{
 			printerCard.innerHTML = `
 				<div class="card-body">
@@ -367,7 +390,7 @@ function updatePrinterData(data) {
                                                         <tr><td>Filamentfarbe</td><td>${printer.filament_color}</td></tr>
                                                 </thead>
                                         <tr><td><a class='btn btn-secondary' href='print.php?preselect=${printer.printer_id}'>Drucken</a></td></tr>
-					</table>
+						</table>
                                 </div>
                         `;
 	}else if(printer.view==4){

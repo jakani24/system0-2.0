@@ -60,9 +60,23 @@ function load_user()
 				  {
 					$email = htmlspecialchars($_POST["email"]);
 					$bug = htmlspecialchars($_POST["bug"]);
-					$text = urlencode("JWAF INFORMATION:\nuser: $username;\nemail: $email\nbug: $bug\nEND");
-					exec("curl \"https://api.telegram.org/$api/sendMessage?chat_id=$chat_id&text=$text\"");
-					  echo '<div class="alert alert-success" role="alert">Vielen Dank, deine Fehlermeldung ist bei uns angekommen und wir kümmern uns darum.</div>';
+					
+					// Use cURL instead of exec() to prevent command injection
+					$text = "JWAF INFORMATION:\nuser: $username\nemail: $email\nbug: $bug\nEND";
+					
+					$ch = curl_init();
+					$api_url = "https://api.telegram.org/" . $api . "/sendMessage";
+					curl_setopt($ch, CURLOPT_URL, $api_url);
+					curl_setopt($ch, CURLOPT_POST, true);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array(
+						'chat_id' => $chat_id,
+						'text' => $text
+					)));
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					curl_exec($ch);
+					curl_close($ch);
+					
+					echo '<div class="alert alert-success" role="alert">Vielen Dank, deine Fehlermeldung ist bei uns angekommen und wir kümmern uns darum.</div>';
 				  }
 				?>
 			  </div>

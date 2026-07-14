@@ -33,8 +33,26 @@ function short_path($filePath, $firstCharsCount, $lastCharsCount) {
     }
 }
 
+// Helper function to safely fetch printer data via cURL
+function safe_fetch_printer_data($url, $apikey, $username) {
+    $output_file = "/var/www/html/user_files/" . $username . "/json.json";
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url . '/api/job');
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-Key: " . $apikey));
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    
+    $response = curl_exec($ch);
+    curl_close($ch);
+    
+    file_put_contents($output_file, $response);
+    return file_get_contents($output_file);
+}
+
 $printers = [];
-$sql = "SELECT rotation, free, printer.id, printer_url, apikey, cancel, used_by_userid, system_status, printer.color, COALESCE(name, 'nicht verfügbar') AS real_color, COALESCE(username,'nicht verfügbar') FROM printer LEFT JOIN filament ON printer.color=internal_id LEFT JOIN users ON used_by_userid=users.id ORDER BY printer.id";
+$sql = "SELECT rotation, free, printer.id, printer_url, apikey, cancel, used_by_userid, system_status, printer.color, COALESCE(name, 'nicht verfügbar') AS real_color, COALESCE(username,'nicht verfügbar') AS used_by_user FROM printer LEFT JOIN filament ON printer.color = filament.id LEFT JOIN users ON printer.used_by_userid = users.id";
 $stmt = mysqli_prepare($link, $sql);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_store_result($stmt);
@@ -55,8 +73,7 @@ while (mysqli_stmt_fetch($stmt)) {
     ];
 
     if ($is_free == 0 && $system_status == 0 && $cancel==0) {
-        exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
-        $fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
+        $fg = safe_fetch_printer_data($url, $apikey, $_SESSION["username"]);
         $json = json_decode($fg, true);
         $printer["progress"] = (int) $json['progress']['completion'];
         $printer["file"] = short_path($json["job"]["file"]["name"], 10, 10);
@@ -73,8 +90,7 @@ while (mysqli_stmt_fetch($stmt)) {
 	}
 	$printer["progress"]=ceil(100*intval($json["progress"]["printTime"])/(intval($json["progress"]["printTime"])+intval($json["progress"]["printTimeLeft"])+1));
     }else if($cancel==1 && ($system_status==0 or $system_status==99)){
-	exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
-        $fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
+	$fg = safe_fetch_printer_data($url, $apikey, $_SESSION["username"]);
         $json = json_decode($fg, true);
         //$printer["progress"] = (int) $json['progress']['completion'];
 	$printer["progress"]=ceil(100*intval($json["progress"]["printTime"])/(intval($json["progress"]["printTime"])+intval($json["progress"]["printTimeLeft"])+1));
@@ -89,8 +105,7 @@ while (mysqli_stmt_fetch($stmt)) {
 	$printer["print_status"]="Bereit";
 	$printer["view"]=3;
     }*/else if(($is_free == 1 && $system_status==0) or $system_status==99){ //check if a print has been started from another location
-    	exec("curl --max-time 10 $url/api/job?apikey=$apikey > /var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
-	$fg = file_get_contents("/var/www/html/user_files/" . $_SESSION["username"] . "/json.json");
+    	$fg = safe_fetch_printer_data($url, $apikey, $_SESSION["username"]);
         $json = json_decode($fg, true);
 	if($json['state']=="Starting print from SD" or $json['state']=="Printing" or $json['state']=="Printing from SD" or $system_status==99){
 		$printer["print_status"]="Von anderer Quelle aus gestartet.";
