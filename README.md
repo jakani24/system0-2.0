@@ -1,3 +1,6 @@
+# DEPRECATED
+This system has not seen any updates in quite a while. In addition it is pretty unsafe. Do not use it on internet facing servers without patching the vulnerabilities first.
+
 # system0-2.0
 The new version of system0. It runs on Docker and is much smarter with many new features compared to the original system0.
 
